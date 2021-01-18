@@ -1,0 +1,14 @@
+﻿{
+  "NotebookFounds": "{0} bloc-notes trouvés.\nMerci de choisir le bloc-note à exporter : ",
+  "ExportAllNotebooks": "[0] Exporter tous les bloc-notes",
+  "ErrorImageExtract": "Erreur pendant l'extraction des images de la page.",
+  "ExportNotebookPositionX": "[{0}] {1}",
+  "NotebookNotFound": "Bloc-note non trouvé",
+  "BadInput": "Merci de saisir une valeur numérique",
+  "ChooseExportFormat": "Merci de choisir le format de l'export: ",
+  "ChooseExportFormat1": "[1] Arborescence de dossier Markdown ",
+  "ChooseExportFormat2": "[2] Dossier Joplin Markdown",
+  "StartExportingNotebook": "Début de l'export du bloc-note : {0}",
+  "ExportSuccessful": "Export réussi. Le résult est disponible ici : '{0}'",
+  "ErrorDurringPageProcessing": "Erreur durant le traitement de la page [{1}]. Page ignorée. Message d'erreur : {2}"
+}
