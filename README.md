@@ -1,17 +1,17 @@
 **OneNode Md Export** is a console application running on Windows that exports your OneNote notebooks in different markdown formats. Currently, **Joplin markdown directory** and **Markdown directory** are supported.
 
-The main objective of this repository is to offer the most simple and loseless solution for OneNote users wanting to migrate to Joplin.
-It offer an alternative to migration using EverNote export (OneNote-> ENEX -> Joplin) in particuliar for people organizing their notes using hierarchy of sections inside notebooks, and hierarchy of pages inside a sections.
+The main objective of this repository is to offer to OneNote users the most simple and loseless solution to migrate to Joplin.
+It offers an alternative to migration based on EverNote export (OneNote-> ENEX -> Joplin), in particuliar for people organizing their notes using hierarchy of sections and hierarchy of pages, lost during EverNote import.
 
 Technical characteristics :
 * Based on DotNet 5, Office Interop API, PanDoc
-* 100% offline
+* Work offline
 * Extensible : new export format can be easily added
 
 # Requirements
 
 Tested on : 
-* Platform : Windows 10
+* Windows 10
 * Office 2016
 * Joplin 1.6
 
@@ -52,7 +52,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods :
 | Image  | ✅ | ✅ |
 | Table  | ✅ | ✅ |
 | Table with nested image  | 🟠 Html table, image lost | ✅ Markdown |
-| Attachements  | 🔴 TODO | ✅ |
+| Attachements  | 🔴 | ✅ |
 | Mark (\<mark\>)  | 🔴 | 🔴 |
 | Drawing | 🟠 Flattened as image | 🟠 Flattened as image |
 | Pensile text  | 🔴 Lost | 🟠 Flattened as image |
@@ -67,7 +67,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods :
 If you are note using sections and pages hierarchy, or using complex formating, EverNote migration can offer better results for you.
 
 ## Joplin format
-⚠️ Joplin RAW Export Directory format is not aim at being used by 3rd party applications. Futur Joplin version may introduce modifications  preventing this tool to import correlty notebooks exported with this tool. I will do my best to keep it up-to-date with last joplin version. 
+⚠️ Futur Joplin version may introduce modifications in the Joplin RAW Export Directory format preventing this tool to import correlty notebooks exported with this tool. I will do my best to keep it up-to-date with futur joplin versions. 
 
 #  Contribution
 
