@@ -79,19 +79,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                         _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFilePath), PublishFormat.pfWord);
 
                         var mdFilePath = Path.Combine(notebookFolder, $"{page.Id}.md");
-                        var mdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourcePath, section.GetLevel());
-                        mdFileContent = _convertServer.PostConvertion(page, mdFileContent, resourcePath, mdFilePath, true);
-                        mdFileContent = AddJoplinMetadata(page, mdFileContent);
+                        var pageMdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourcePath, section.GetLevel());
+                        pageMdFileContent = _convertServer.PostConvertion(page, pageMdFileContent, resourcePath, mdFilePath, true);
+                        pageMdFileContent = AddJoplinMetadata(page, pageMdFileContent);
+                        pageMdFileContent = ExportPageAttachments(page, pageMdFileContent, notebookFolder, resourcePath);
 
                         // Create image md file
-                        File.WriteAllText(mdFilePath, mdFileContent);
-
-                        foreach (var image in page.Attachements)
-                        {
-                            // Create attachment md file
-                            var mdExtensionFileContent = AddJoplinAttachmentMetadata(image);
-                            File.WriteAllText(Path.Combine(notebookFolder, $"{image.Id}.md"), mdExtensionFileContent);
-                        }
+                        File.WriteAllText(mdFilePath, pageMdFileContent);
                     }
                     catch (Exception e)
                     {
@@ -99,6 +93,30 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     }
                 }
             }
+        }
+
+        private string ExportPageAttachments(Page page, string pageMdFileContent, string notebookFolder, string resourcePath)
+        {
+            foreach (var attach in page.Attachements)
+            {
+                if(attach.Type == AttachementType.File)
+                {
+                    // TODO : replace .bin by real orignal file extension from "original onenote file"
+                    attach.ExportFilePath = Path.Combine(resourcePath, $"{attach.Id}.bin");
+
+                    // Copy attachment file into export folder
+                    File.Copy(attach.OneNoteFilePath, attach.ExportFilePath);
+
+                    // Replace reference in Md File
+                    // TODO: regex
+                }
+
+                // Create attachment md file
+                var mdExtensionFileContent = AddJoplinAttachmentMetadata(attach);
+                File.WriteAllText(Path.Combine(notebookFolder, $"{attach.Id}.md"), mdExtensionFileContent);
+            }
+
+            return pageMdFileContent;
         }
 
         private string AddJoplinAttachmentMetadata(Attachements attach)

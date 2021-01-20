@@ -1,11 +1,11 @@
 ﻿{
-  "NotebookFounds": "{0} notebook(s) found(s).\nPlease select notebooks to export : ",
+  "NotebookFounds": "{0} notebook(s) found(s).\nPlease enter the notebooks number to export : ",
   "ExportAllNotebooks": "[0] Export all notebooks",
   "ErrorImageExtract": "Error while extracting images of the page.",
   "ExportNotebookPositionX": "[{0}] {1}",
   "NotebookNotFound": "Notebook not found",
   "BadInput": "Please enter a numeric value",
-  "ChooseExportFormat": "Please choose export format: ",
+  "ChooseExportFormat": "\nPlease choose export format: ",
   "ChooseExportFormat1": "[1] Markdown folder tree",
   "ChooseExportFormat2": "[2] Joplin folder",
   "StartExportingNotebook": "Start exporting notebook: {0}",

@@ -23,6 +23,11 @@ namespace alxnbl.OneNoteMdExporter
 
             var notebooks = onenoteApp.GetNotebooks();
 
+
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("- OneNote Md Exporter -");
+            Console.WriteLine("-----------------------\n");
+
             Console.WriteLine(Localizer.GetString("NotebookFounds"), notebooks.Count);
             Console.WriteLine(Localizer.GetString("ExportAllNotebooks"));
 

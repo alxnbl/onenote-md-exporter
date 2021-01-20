@@ -2,6 +2,7 @@
 {
     public enum AttachementType
     {
-        Image = 1
+        Image = 1,
+        File = 2
     }
 }

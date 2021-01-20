@@ -176,35 +176,32 @@ namespace alxnbl.OneNoteMdExporter.Services
 
                 var padDocImgPath = imgMatch.Groups["src"].Value;
 
-                var imgAttachement = page.Attachements.Where(img => img.PanDocFilePath == padDocImgPath).FirstOrDefault();
+                var imgAttach = page.ImageAttachements.Where(img => img.PanDocFilePath == padDocImgPath).FirstOrDefault();
 
-                if (imgAttachement == null)
+                if (imgAttach == null)
                 {
                     // Add a new attachmeent to current page
-                    var attachId = Guid.NewGuid().ToString().Replace("-", string.Empty);
-                    var fileName = attachId + Path.GetExtension(padDocImgPath);
-
-                    imgAttachement = new Attachements(page)
+                    imgAttach = new Attachements(page)
                     {
-                        Id = attachId,
                         Type = AttachementType.Image,
                         PanDocFilePath = padDocImgPath,
-                        FileName = fileName,
-                        ExportFilePath = Path.Combine(resourceFolderPath, fileName)
                     };
 
-                    page.Attachements.Add(imgAttachement);
+                    imgAttach.FileName = imgAttach.Id + Path.GetExtension(padDocImgPath);
+                    imgAttach.ExportFilePath = Path.Combine(resourceFolderPath, imgAttach.FileName);
+
+                    page.Attachements.Add(imgAttach);
                 }
 
                 var attachRef = absoluteAttachmentRef ?
-                    $":/{imgAttachement.Id}" :
-                    GetImgMdReference(Path.GetRelativePath(Path.GetDirectoryName(mdFilePath), resourceFolderPath), imgAttachement.FileName);
+                    $":/{imgAttach.Id}" :
+                    GetImgMdReference(Path.GetRelativePath(Path.GetDirectoryName(mdFilePath), resourceFolderPath), imgAttach.FileName);
 
-                return $"![{imgAttachement.FileName}]({attachRef})";
+                return $"![{imgAttach.FileName}]({attachRef})";
             });
 
             // Move attachements file into output ressource folder and delete tmp file
-            foreach (var attach in page.Attachements)
+            foreach (var attach in page.ImageAttachements)
             {
                 File.Copy(attach.PanDocFilePath, attach.ExportFilePath);
                 File.Delete(attach.PanDocFilePath);
