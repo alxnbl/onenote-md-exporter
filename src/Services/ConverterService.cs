@@ -71,14 +71,14 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// <param name="mdFileContent"></param>
         /// <param name="resourceFolderPath">The path to the notebook folder where store attachments</param>
         /// <param name="mdFilePath">Path where the md file will be exported</param>
-        public string PostConvertion(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool absoluteAttachmentRef)
+        public string PostConvertion(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool joplinResourceRef)
         {
 
             if (_appSettings.PostProcessingMdImgRef)
             {
                 try
                 {
-                    mdFileContent = ExtractImagesToResourceFolder(page, mdFileContent, resourceFolderPath, mdFilePath, absoluteAttachmentRef);
+                    mdFileContent = ExtractImagesToResourceFolder(page, mdFileContent, resourceFolderPath, mdFilePath, joplinResourceRef);
                 }
                 catch (Exception ex)
                 {
@@ -117,21 +117,15 @@ namespace alxnbl.OneNoteMdExporter.Services
                 return "";
             });
 
-            // Max 2 consecutive linebreaks
-            pageTxtModified = Regex.Replace(pageTxtModified, @"(\n[\t ]+){3,10}", delegate (Match match)
-            {
-                return "\n\n";
-            });
-
             return pageTxtModified;
         }
 
         private string RemoveConsecutiveLinebreaks(string pageTxt)
         {
-            string regex = @"\n>[ \n]*";
-            var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
+            // Max 2 consecutive linebreaks
+            var pageTxtModified = Regex.Replace(pageTxt, @"(\n[\t ]+){3,10}", delegate (Match match)
             {
-                return "";
+                return "\n\n";
             });
 
             return pageTxtModified;
@@ -156,7 +150,7 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// <param name="resourceFolderPath">The path to the notebook folder where store attachments</param>
         /// <param name="sectionTreeLevel">Level in the page hierarchy of one note, to indent the page title in Joplin</param>
         /// <returns></returns>
-        private string ExtractImagesToResourceFolder(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool absoluteAttachmentRef)
+        private string ExtractImagesToResourceFolder(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool joplinResourceRef)
         {
             string regexImg = "<img [^>]+/>";
 
@@ -193,11 +187,11 @@ namespace alxnbl.OneNoteMdExporter.Services
                     page.Attachements.Add(imgAttach);
                 }
 
-                var attachRef = absoluteAttachmentRef ?
+                var attachRef = joplinResourceRef ?
                     $":/{imgAttach.Id}" :
                     GetImgMdReference(Path.GetRelativePath(Path.GetDirectoryName(mdFilePath), resourceFolderPath), imgAttach.FileName);
 
-                return $"![{imgAttach.FileName}]({attachRef})";
+                return $"![{imgAttach.DisplayName}]({attachRef})";
             });
 
             // Move attachements file into output ressource folder and delete tmp file

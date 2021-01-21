@@ -7,8 +7,6 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
 {
     public class AppSettings
     {
-        public bool ClearAndFillDb { get; internal set; }
-
         public bool Debug { get; internal set; } = false;
 
         public bool PostProcessingMdImgRef { get; internal set; } = true;
