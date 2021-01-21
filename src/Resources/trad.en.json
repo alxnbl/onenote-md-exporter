@@ -9,6 +9,6 @@
   "ChooseExportFormat1": "[1] Markdown folder tree",
   "ChooseExportFormat2": "[2] Joplin folder",
   "StartExportingNotebook": "Start exporting notebook: {0}",
-  "ExportSuccessful": "Export successful. Export folder path : '{0}'",
+  "ExportSuccessful": "==> Export successful ! Notebook folder is available here : '{0}'",
   "ErrorDurringPageProcessing": "Error during page process {0} [{1}]. Page ignored. Error message : {2}"
 }

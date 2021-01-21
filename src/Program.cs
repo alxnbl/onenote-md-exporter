@@ -72,6 +72,9 @@ namespace alxnbl.OneNoteMdExporter
             var exportFormatTxt = Console.ReadLine();
 
 
+            Console.WriteLine("");
+
+
             if (!Enum.TryParse<ExportFormat>(exportFormatTxt, true, out var exportFormat))
             {
                 Console.WriteLine(Localizer.GetString("BadInput"));
@@ -82,10 +85,14 @@ namespace alxnbl.OneNoteMdExporter
 
             foreach (Notebook notebook in notebookToProcess)
             {
-                Log.Information(Localizer.GetString("StartExportingNotebook"), notebook.Title);
+                Console.WriteLine(Localizer.GetString("StartExportingNotebook"), notebook.Title);
+
                 exportService.ExportNotebook(notebook);
                 var exportPath = Path.GetFullPath(notebook.Title);
-                Log.Information(Localizer.GetString("ExportSuccessful"), exportPath);
+
+                Console.WriteLine("");
+                Console.WriteLine(Localizer.GetString("ExportSuccessful"), exportPath);
+                Console.WriteLine("");
             }
         }
 

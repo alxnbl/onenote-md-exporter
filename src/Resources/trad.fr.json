@@ -9,6 +9,6 @@
   "ChooseExportFormat1": "[1] Arborescence de dossier Markdown ",
   "ChooseExportFormat2": "[2] Dossier Joplin Markdown",
   "StartExportingNotebook": "Début de l'export du bloc-note : {0}",
-  "ExportSuccessful": "Export réussi. Le résult est disponible ici : '{0}'",
+  "ExportSuccessful": "==> Export réussi ! Le bloc-notes est disponible ici : '{0}'",
   "ErrorDurringPageProcessing": "Erreur durant le traitement de la page [{1}]. Page ignorée. Message d'erreur : {2}"
 }
