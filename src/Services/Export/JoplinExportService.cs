@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -56,42 +57,66 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         private void ExportSection(Node section)
         {
-            var sectionMdFileContent = AddJoplinMetadata(section, "");
+            var sectionMdFileContent = AddJoplinNodeMetadata(section, "");
             var notebookFolder = section.GetNotebookName();
+            var docxFolder = Path.Combine("tmp", notebookFolder);
+            Directory.CreateDirectory(docxFolder);
 
             File.WriteAllText(Path.Combine(notebookFolder, $"{section.Id}.md"), sectionMdFileContent);
 
             if (section is Section sectionNode && !sectionNode.IsSectionGroup)
             {
                 var pages = _oneNoteApp.GetPages(sectionNode);
-                var resourcePath = Path.Combine(notebookFolder, "resources");
-                Directory.CreateDirectory(resourcePath);
+                var resourceFolderPath = Path.Combine(notebookFolder, "resources");
+                Directory.CreateDirectory(resourceFolderPath);
 
                 foreach (Page page in pages)
                 {
                     Log.Information($"{page.TitleWithPageLevelTabulation}");
 
-                    var docxFilePath = Path.Combine("tmp", page.TitleWithNoInvalidChars + ".docx");
+                    var docxFilePath = Path.Combine(docxFolder + ".docx");
 
                     try
                     {
                         File.Delete(docxFilePath);
                         _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFilePath), PublishFormat.pfWord);
 
+
                         var mdFilePath = Path.Combine(notebookFolder, $"{page.Id}.md");
-                        var mdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourcePath, section.GetLevel());
-                        mdFileContent = _convertServer.PostConvertion(page, mdFileContent, resourcePath, mdFilePath, true);
-                        mdFileContent = AddJoplinMetadata(page, mdFileContent);
+                        var pageMdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourceFolderPath, section.GetLevel());
+
+                        if (_appSettings.Debug)
+                        {
+                            File.Delete(docxFilePath);
+                        }
+
+                        try
+                        {
+                            pageMdFileContent = _convertServer.ExtractImagesToResourceFolder(page, pageMdFileContent, resourceFolderPath, mdFilePath, true, _appSettings.PostProcessingMdImgRef);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (_appSettings.Debug)
+                                Log.Warning($"Page '{page.GetPageFileRelativePath()}': {Localizer.GetString("ErrorImageExtract")}");
+                            else
+                                Log.Warning(ex, $"Page '{page.GetPageFileRelativePath()}'.");
+                        }
+
+                        pageMdFileContent = ExportPageAttachments(page, pageMdFileContent, notebookFolder, resourceFolderPath);
+
+                        pageMdFileContent = _convertServer.PostConvertion(page, pageMdFileContent, resourceFolderPath, mdFilePath, true);
+
+                        pageMdFileContent = AddJoplinNodeMetadata(page, pageMdFileContent);
 
                         // Create image md file
-                        File.WriteAllText(mdFilePath, mdFileContent);
+                        File.WriteAllText(mdFilePath, pageMdFileContent);
 
-                        foreach (var image in page.Attachements)
+
+                        if (!_appSettings.Debug)
                         {
-                            // Create attachment md file
-                            var mdExtensionFileContent = AddJoplinAttachmentMetadata(image);
-                            File.WriteAllText(Path.Combine(notebookFolder, $"{image.Id}.md"), mdExtensionFileContent);
+                            File.Delete(docxFilePath);
                         }
+
                     }
                     catch (Exception e)
                     {
@@ -101,16 +126,74 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
         }
 
+        /// <summary>
+        /// Export each page attachment and insert reference to them in Md page
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="pageMdFileContent"></param>
+        /// <param name="notebookFolder"></param>
+        /// <param name="resourcePath"></param>
+        /// <returns></returns>
+        private string ExportPageAttachments(Page page, string pageMdFileContent, string notebookFolder, string resourcePath)
+        {
+            var pageMdFileContentModified = pageMdFileContent;
+            foreach (var attach in page.Attachements)
+            {
+                if(attach.Type == AttachementType.File)
+                {
+                    // TODO : replace .bin by real orignal file extension from "original onenote file"
+                    var ext = Path.GetExtension(attach.OneNoteFileSourceFilePath);
+
+                    attach.ExportFilePath = Path.Combine(resourcePath, $"{attach.Id}{ext}");
+
+                    // Copy attachment file into export folder
+                    File.Copy(attach.OneNoteFilePath, attach.ExportFilePath);
+                    File.SetAttributes(attach.ExportFilePath, FileAttributes.Normal); // Prevent exception during deletation of export directory
+
+
+                    pageMdFileContentModified = InsertMdFileAttachReferences(pageMdFileContentModified, attach);
+                }
+
+                // Create attachment md file
+                var mdExtensionFileContent = AddJoplinAttachmentMetadata(attach);
+                File.WriteAllText(Path.Combine(notebookFolder, $"{attach.Id}.md"), mdExtensionFileContent);
+            }
+
+            return pageMdFileContentModified;
+        }
+
+        private static string InsertMdFileAttachReferences(string pageMdFileContent, Attachements attach)
+        {
+            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(&lt;){2}(?<fileName>.*)(&gt;){2}", delegate (Match match)
+            {
+                string refFileName = match.Groups["fileName"]?.Value ?? "";
+                string attachOriginalFileName = Path.GetFileName(attach.OneNoteFileSourceFilePath);
+
+                if (refFileName.Equals(attachOriginalFileName))
+                {
+                    // reference found is corresponding to the attachment being processed
+                    return $"[{attachOriginalFileName}](:/{attach.Id})";
+                }
+                else
+                {
+                    // not the current attachmeent, ignore
+                    return match.Value;
+                }
+            });
+
+            return pageMdFileContentModified;
+        }
+
         private string AddJoplinAttachmentMetadata(Attachements attach)
         {
             var sb = new StringBuilder();
-            sb.Append($"{attach.FileName}\n");
+            sb.Append($"{attach.ExportFileName}\n");
 
             var data = new Dictionary<string, string>();
 
             data["id"] = attach.Id;
             data["mime"] = MimeTypes.GetMimeType(attach.ExportFilePath);
-            data["filename"] = "";
+            data["filename"] = attach.FriendlyFileName;
             data["updated_time"] = attach.Parent.LastModificationDate.ToString("s");
             data["user_updated_time"] = attach.Parent.LastModificationDate.ToString("s");
             data["created_time"] = attach.Parent.CreationDate.ToString("s");
@@ -131,7 +214,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             return sb.ToString();
         }
 
-        private string AddJoplinMetadata(Node node, string mdFileContent)
+        private string AddJoplinNodeMetadata(Node node, string mdFileContent)
         {
             var sb = new StringBuilder();
 

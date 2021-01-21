@@ -148,7 +148,42 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             {
                 position++;
                 page.PageSectionOrder = position;
+
+                oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piAll);
+
+
+                // Alternative : return page content without binaries
+                //oneNoteApp.GetHierarchy(page.OneNoteId, HierarchyScope.hsChildren, out var xmlAttach);
+
+                var xmlPageContent = XDocument.Parse(xmlPageContentStr).Root;
+
+                var ns2 = xmlPageContent.Name.Namespace;
+                var pageTitleOE = xmlPageContent.Descendants(ns + "Title")?.FirstOrDefault()?.Descendants(ns + "OE")?.FirstOrDefault();
+                if(pageTitleOE != null)
+                {
+                    page.Author = pageTitleOE.Attribute("author").Value;
+                }
+
+                foreach(var xmlInsertedFile in xmlPageContent.Descendants(ns + "InsertedFile"))
+                {
+                    var fileAttachment = new Attachements(page)
+                    {
+                        OneNoteFilePath = xmlInsertedFile.Attribute("pathCache")?.Value,
+                        OneNoteFileSourceFilePath = xmlInsertedFile.Attribute("pathSource")?.Value,
+                        FriendlyFileName = xmlInsertedFile.Attribute("preferredName")?.Value,
+                        Type = AttachementType.File
+                    };
+
+                    if(fileAttachment.OneNoteFilePath != null)
+                    {
+                        page.Attachements.Add(fileAttachment);
+                    }
+                }
+
+                //oneNoteApp.GetBinaryPageContent(page.OneNoteId, "???", out var xmlBinaryElement);
+
             }
+
 
             return childPages;
         }

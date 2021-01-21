@@ -1,6 +1,7 @@
 ﻿using alxnbl.OneNoteMdExporter.Helpers;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace alxnbl.OneNoteMdExporter.Models
 {
@@ -23,6 +24,10 @@ namespace alxnbl.OneNoteMdExporter.Models
         public string TitleWithNoInvalidChars { get => Title.RemoveInvalidFileNameChars(); }
 
         public IList<Attachements> Attachements { get; set; } = new List<Attachements>();
+        public IList<Attachements> ImageAttachements { get => Attachements.Where(a => a.Type == AttachementType.Image).ToList(); }
+        public IList<Attachements> FileAttachements { get => Attachements.Where(a => a.Type == AttachementType.File).ToList(); }
+
+        public string Author { get; internal set; }
 
         public Page(Section parent) : base(parent)
         {
