@@ -67,8 +67,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             if (section is Section sectionNode && !sectionNode.IsSectionGroup)
             {
                 var pages = _oneNoteApp.GetPages(sectionNode);
-                var resourcePath = Path.Combine(notebookFolder, "resources");
-                Directory.CreateDirectory(resourcePath);
+                var resourceFolderPath = Path.Combine(notebookFolder, "resources");
+                Directory.CreateDirectory(resourceFolderPath);
 
                 foreach (Page page in pages)
                 {
@@ -83,17 +83,28 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
 
                         var mdFilePath = Path.Combine(notebookFolder, $"{page.Id}.md");
-                        var pageMdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourcePath, section.GetLevel());
+                        var pageMdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourceFolderPath, section.GetLevel());
 
                         if (_appSettings.Debug)
                         {
                             File.Delete(docxFilePath);
                         }
 
-                        
-                        pageMdFileContent = ExportPageAttachments(page, pageMdFileContent, notebookFolder, resourcePath);
+                        try
+                        {
+                            pageMdFileContent = _convertServer.ExtractImagesToResourceFolder(page, pageMdFileContent, resourceFolderPath, mdFilePath, true, _appSettings.PostProcessingMdImgRef);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (_appSettings.Debug)
+                                Log.Warning($"Page '{page.GetPageFileRelativePath()}': {Localizer.GetString("ErrorImageExtract")}");
+                            else
+                                Log.Warning(ex, $"Page '{page.GetPageFileRelativePath()}'.");
+                        }
 
-                        pageMdFileContent = _convertServer.PostConvertion(page, pageMdFileContent, resourcePath, mdFilePath, true);
+                        pageMdFileContent = ExportPageAttachments(page, pageMdFileContent, notebookFolder, resourceFolderPath);
+
+                        pageMdFileContent = _convertServer.PostConvertion(page, pageMdFileContent, resourceFolderPath, mdFilePath, true);
 
                         pageMdFileContent = AddJoplinNodeMetadata(page, pageMdFileContent);
 
@@ -161,7 +172,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 if (refFileName.Equals(attachOriginalFileName))
                 {
                     // reference found is corresponding to the attachment being processed
-                    return $"![{attachOriginalFileName}](:/{attach.Id})";
+                    return $"[{attachOriginalFileName}](:/{attach.Id})";
                 }
                 else
                 {
@@ -176,13 +187,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         private string AddJoplinAttachmentMetadata(Attachements attach)
         {
             var sb = new StringBuilder();
-            sb.Append($"{attach.FileName}\n");
+            sb.Append($"{attach.ExportFileName}\n");
 
             var data = new Dictionary<string, string>();
 
             data["id"] = attach.Id;
             data["mime"] = MimeTypes.GetMimeType(attach.ExportFilePath);
-            data["filename"] = "";
+            data["filename"] = attach.FriendlyFileName;
             data["updated_time"] = attach.Parent.LastModificationDate.ToString("s");
             data["user_updated_time"] = attach.Parent.LastModificationDate.ToString("s");
             data["created_time"] = attach.Parent.CreationDate.ToString("s");

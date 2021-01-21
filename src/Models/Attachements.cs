@@ -8,7 +8,7 @@ namespace alxnbl.OneNoteMdExporter.Models
 
         public AttachementType Type {get; set;}
 
-        public string DisplayName { get; set; }
+        public string FriendlyFileName { get; set; }
 
         public string PanDocFilePath { get; set; }
 
@@ -24,7 +24,7 @@ namespace alxnbl.OneNoteMdExporter.Models
         /// </summary>
         public string OneNoteFileSourceFilePath { get; set; }
 
-        public string FileName { get; set; }
+        public string ExportFileName { get; set; }
 
         public Page Parent { get; set; }
 

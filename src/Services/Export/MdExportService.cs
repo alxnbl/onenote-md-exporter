@@ -55,8 +55,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             var pages = _oneNoteApp.GetPages(sectionNote);
 
-            var resourcePath = Path.Combine(section.GetNotebookName(), "_resources");
-            Directory.CreateDirectory(resourcePath);
+            var resourceFolderPath = Path.Combine(section.GetNotebookName(), "_resources");
+            Directory.CreateDirectory(resourceFolderPath);
 
             foreach (Page page in pages)
             {
@@ -71,9 +71,22 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     File.Delete(docxFilePath);
                     _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFilePath), PublishFormat.pfWord);
 
+                    var mdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourceFolderPath, section.GetLevel());
                     var mdFilePath = page.GetPageFileRelativePath() + ".md";
-                    var mdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourcePath, section.GetLevel());
-                    mdFileContent = _convertServer.PostConvertion(page, mdFileContent, resourcePath, mdFilePath, false);
+
+                    try
+                    {
+                        mdFileContent = _convertServer.ExtractImagesToResourceFolder(page, mdFileContent, resourceFolderPath, mdFilePath, true, _appSettings.PostProcessingMdImgRef);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (_appSettings.Debug)
+                            Log.Warning($"Page '{page.GetPageFileRelativePath()}': {Localizer.GetString("ErrorImageExtract")}");
+                        else
+                            Log.Warning(ex, $"Page '{page.GetPageFileRelativePath()}'.");
+                    }
+
+                    mdFileContent = _convertServer.PostConvertion(page, mdFileContent, resourceFolderPath, mdFilePath, false);
 
                     File.WriteAllText(mdFilePath, mdFileContent);
                 }
