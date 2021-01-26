@@ -28,15 +28,23 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         public void ExportNotebook(Notebook notebook)
         {
 
-            if (Directory.Exists(notebook.Title))
-                Directory.Delete(notebook.Title, true);
+            if (Directory.Exists(notebook.GetPath()))
+                Directory.Delete(notebook.GetPath(), true);
             Directory.CreateDirectory(notebook.Title);
 
             if (Directory.Exists("tmp"))
                 Directory.Delete("tmp", true);
             Directory.CreateDirectory("tmp");
 
-            _oneNoteApp.FillNodebookTree(notebook);
+            try
+            {
+                _oneNoteApp.FillNodebookTree(notebook);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, Localizer.GetString("ErrorDuringNotebookProcessingNbTree"), notebook.Title, notebook.Id, ex.Message);
+                return;
+            }
 
             var sections = notebook.GetSections(true);
 
@@ -49,7 +57,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             foreach (var section in sections)
             {
                 cmpt++;
-                Log.Information($"Start processing section ({cmpt}/{sections.Count()}) :  {section.GetPath()}/{section.Title}");
+                Log.Information($"Start processing section ({cmpt}/{sections.Count()}) :  {section.GetPath()}\\{section.Title}");
 
                 ExportSection(section);
             }
@@ -58,57 +66,63 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         private void ExportSection(Node section)
         {
             var sectionMdFileContent = AddJoplinNodeMetadata(section, "");
-            var notebookFolder = section.GetNotebookName();
+            var notebookFolder = section.GetNotebookPath();
             var docxFolder = Path.Combine("tmp", notebookFolder);
             Directory.CreateDirectory(docxFolder);
 
+            // Write Section Md File
             File.WriteAllText(Path.Combine(notebookFolder, $"{section.Id}.md"), sectionMdFileContent);
 
             if (section is Section sectionNode && !sectionNode.IsSectionGroup)
             {
+                // For leaf section, export pages
+                Log.Debug($"Start export pages of section {section.Title}");
+
                 var pages = _oneNoteApp.GetPages(sectionNode);
                 var resourceFolderPath = Path.Combine(notebookFolder, "resources");
                 Directory.CreateDirectory(resourceFolderPath);
 
+                int cmpt = 0;
+
                 foreach (Page page in pages)
                 {
-                    Log.Information($"{page.TitleWithPageLevelTabulation}");
+                    Log.Information($"   Page {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
 
-                    var docxFilePath = Path.Combine(docxFolder + ".docx");
+                    var docxFilePath = Path.Combine(docxFolder, page.Id + ".docx");
 
                     try
                     {
                         File.Delete(docxFilePath);
-                        _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFilePath), PublishFormat.pfWord);
 
+                        Log.Debug($"{page.OneNoteId}: start OneNote docx publish");
+                        _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFilePath), PublishFormat.pfWord);
+                        Log.Debug($"{page.OneNoteId}: success");
 
                         var mdFilePath = Path.Combine(notebookFolder, $"{page.Id}.md");
-                        var pageMdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourceFolderPath, section.GetLevel());
 
-                        if (_appSettings.Debug)
-                        {
-                            File.Delete(docxFilePath);
-                        }
+                        // Convert docx file into Md using PanDoc
+                        var pageMdFileContent = _convertServer.ConvertDocxToMd(page, docxFilePath, resourceFolderPath, section.GetLevel());
 
                         try
                         {
+                            // Copy images extracted from DocX to Export folder and add them in list of attachments of the note
                             pageMdFileContent = _convertServer.ExtractImagesToResourceFolder(page, pageMdFileContent, resourceFolderPath, mdFilePath, true, _appSettings.PostProcessingMdImgRef);
                         }
                         catch (Exception ex)
                         {
-                            if (_appSettings.Debug)
-                                Log.Warning($"Page '{page.GetPageFileRelativePath()}': {Localizer.GetString("ErrorImageExtract")}");
-                            else
-                                Log.Warning(ex, $"Page '{page.GetPageFileRelativePath()}'.");
+                            Log.Warning($"Page '{page.GetPageFileRelativePath()}': {Localizer.GetString("ErrorImageExtract")}");
+                            Log.Debug(ex, ex.Message);
                         }
 
+                        // Export all page attachments
                         pageMdFileContent = ExportPageAttachments(page, pageMdFileContent, notebookFolder, resourceFolderPath);
 
+                        // Apply post processing to Page Md content
                         pageMdFileContent = _convertServer.PostConvertion(page, pageMdFileContent, resourceFolderPath, mdFilePath, true);
 
                         pageMdFileContent = AddJoplinNodeMetadata(page, pageMdFileContent);
 
-                        // Create image md file
+                        // Create page md file
                         File.WriteAllText(mdFilePath, pageMdFileContent);
 
 
@@ -118,9 +132,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                         }
 
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Log.Error(Localizer.GetString("ErrorDurringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, e.Message);
+                        Log.Error(ex, Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message);
                     }
                 }
             }

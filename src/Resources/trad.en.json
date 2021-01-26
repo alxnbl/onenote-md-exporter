@@ -9,6 +9,8 @@
   "ChooseExportFormat1": "[1] Markdown folder tree",
   "ChooseExportFormat2": "[2] Joplin folder",
   "StartExportingNotebook": "Start exporting notebook: {0}",
-  "ExportSuccessful": "==> Export successful ! Notebook folder is available here : '{0}'",
-  "ErrorDurringPageProcessing": "Error during page process {0} [{1}]. Page ignored. Error message : {2}"
+  "ExportSuccessful": "--> Notebook export successful\nExport folder : '{0}'",
+  "ErrorDuringPageProcessing": "Error during processing of page {0} [{1}]. Page ignored. Error message : {2}",
+  "ErrorDuringSectionProcessing": "Error during processing of section {0} [{1}]. Error message : {2}",
+  "ErrorDuringNotebookProcessingNbTree": "Error during processing of notebook {0} [{1}]. Can't browse notebook tree. Error message : {2}"
 }

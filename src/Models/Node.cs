@@ -44,7 +44,7 @@ namespace alxnbl.OneNoteMdExporter.Models
         public string GetPath()
         {
             if (Parent == null)
-                return Title;
+                return Title.RemoveInvalidFileNameChars();
             else
                 return Path.Combine(Parent.GetPath(), Title.RemoveInvalidFileNameChars());
         }
@@ -65,6 +65,12 @@ namespace alxnbl.OneNoteMdExporter.Models
                 return Parent.GetNotebookName();
         }
 
-
+        public string GetNotebookPath()
+        {
+            if (Parent == null)
+                return Title.RemoveInvalidFileNameChars();
+            else
+                return Parent.GetNotebookPath();
+        }
     }
 }

@@ -9,6 +9,8 @@
   "ChooseExportFormat1": "[1] Arborescence de dossier Markdown ",
   "ChooseExportFormat2": "[2] Dossier Joplin Markdown",
   "StartExportingNotebook": "Début de l'export du bloc-note : {0}",
-  "ExportSuccessful": "==> Export réussi ! Le bloc-notes est disponible ici : '{0}'",
-  "ErrorDurringPageProcessing": "Erreur durant le traitement de la page [{1}]. Page ignorée. Message d'erreur : {2}"
+  "ExportSuccessful": "--> Export du bloc-note terminé\nDossier de l'export : '{0}'",
+  "ErrorDuringPageProcessing": "Erreur durant le traitement de la page [{1}]. Page ignorée. Message d'erreur : {2}",
+  "ErrorDuringSectionProcessing": "Erreur durant le traitement de la section {0} [{1}]. Message d'erreur : {2}",
+  "ErrorDuringNotebookProcessingNbTree": "Erreur durant le traitement du bloc-note {0} [{1}]. Impossible de charger l'arborescence. Message d'erreur : {2}"
 }

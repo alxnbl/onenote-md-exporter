@@ -159,33 +159,35 @@ namespace alxnbl.OneNoteMdExporter.Helpers
 
                 var ns2 = xmlPageContent.Name.Namespace;
                 var pageTitleOE = xmlPageContent.Descendants(ns + "Title")?.FirstOrDefault()?.Descendants(ns + "OE")?.FirstOrDefault();
-                if(pageTitleOE != null)
+                if (pageTitleOE != null)
                 {
                     page.Author = pageTitleOE.Attribute("author").Value;
                 }
 
-                foreach(var xmlInsertedFile in xmlPageContent.Descendants(ns + "InsertedFile"))
-                {
-                    var fileAttachment = new Attachements(page)
-                    {
-                        OneNoteFilePath = xmlInsertedFile.Attribute("pathCache")?.Value,
-                        OneNoteFileSourceFilePath = xmlInsertedFile.Attribute("pathSource")?.Value,
-                        FriendlyFileName = xmlInsertedFile.Attribute("preferredName")?.Value,
-                        Type = AttachementType.File
-                    };
-
-                    if(fileAttachment.OneNoteFilePath != null)
-                    {
-                        page.Attachements.Add(fileAttachment);
-                    }
-                }
-
-                //oneNoteApp.GetBinaryPageContent(page.OneNoteId, "???", out var xmlBinaryElement);
-
+                ProcessPageAttachments(ns, page, xmlPageContent);
             }
 
 
             return childPages;
+        }
+
+        private static void ProcessPageAttachments(XNamespace ns, Page page, XElement xmlPageContent)
+        {
+            foreach (var xmlInsertedFile in xmlPageContent.Descendants(ns + "InsertedFile"))
+            {
+                var fileAttachment = new Attachements(page)
+                {
+                    OneNoteFilePath = xmlInsertedFile.Attribute("pathCache")?.Value,
+                    OneNoteFileSourceFilePath = xmlInsertedFile.Attribute("pathSource")?.Value,
+                    FriendlyFileName = xmlInsertedFile.Attribute("preferredName")?.Value,
+                    Type = AttachementType.File
+                };
+
+                if (fileAttachment.OneNoteFilePath != null)
+                {
+                    page.Attachements.Add(fileAttachment);
+                }
+            }
         }
     }
 }
