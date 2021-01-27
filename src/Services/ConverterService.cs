@@ -43,18 +43,33 @@ namespace alxnbl.OneNoteMdExporter.Services
                 UseShellExecute = false,
                 CreateNoWindow = false,
                 RedirectStandardOutput = true,
-                RedirectStandardInput = true
+                RedirectStandardError = true
             };
+
+
+            Log.Debug($"{page.Id} : Start Pandoc");
 
             using (Process exeProcess = Process.Start(startInfo))
             {
                 exeProcess.WaitForExit();
+
+                if(exeProcess.ExitCode == 0)
+                {
+                    Log.Debug($"{page.Id} : Pandoc success");
+                }
+                else
+                {
+                    Log.Error($"{page.Id} : Pandoc error");
+                    var pandocError = exeProcess.StandardError.ReadToEnd();
+                    Log.Error("Pandoc error output: {0}", pandocError);
+                }
+
+
+                if (_appSettings.Debug)
+                {
+                    Log.Debug($"Pandoc output: {exeProcess.StandardOutput.ReadToEnd()}");
+                }
             }
-
-            // TODO : get pandoc result
-
-            if(!_appSettings.Debug)
-                File.Delete(inputFilePath);
 
             var mdFileContent = File.ReadAllText(mdFilePath);
 
@@ -65,18 +80,16 @@ namespace alxnbl.OneNoteMdExporter.Services
         }
 
 
-            /// <summary>
-            /// Apply post-convertion to md file
-            /// </summary>
-            /// <param name="page">Section page</param>
-            /// <param name="mdFileContent"></param>
-            /// <param name="resourceFolderPath">The path to the notebook folder where store attachments</param>
-            /// <param name="mdFilePath">Path where the md file will be exported</param>
-            public string PostConvertion(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool joplinResourceRef)
+        /// <summary>
+        /// Apply post-convertion to md file
+        /// </summary>
+        /// <param name="page">Section page</param>
+        /// <param name="mdFileContent"></param>
+        /// <param name="resourceFolderPath">The path to the notebook folder where store attachments</param>
+        /// <param name="mdFilePath">Path where the md file will be exported</param>
+        public string PostConvertion(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool joplinResourceRef)
         {
-
-
-            if(_appSettings.PostProcessingRemoveQuotationBlocks)
+            if (_appSettings.PostProcessingRemoveQuotationBlocks)
             {
                 mdFileContent = RemoveQuotationBlocks(mdFileContent);
             }
@@ -130,7 +143,7 @@ namespace alxnbl.OneNoteMdExporter.Services
         }
 
         /// <summary>
-        /// Replace PanDoc IMG HTML tag by markdown reference and move image file into notebook export directory
+        /// Replace PanDoc IMG HTML tag by markdown reference and copy image file into notebook export directory
         /// </summary>
         /// <param name="page">Section page</param>
         /// <param name="mdFileContent">Contennt of the MD file</param>

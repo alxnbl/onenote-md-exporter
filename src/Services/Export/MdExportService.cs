@@ -55,14 +55,16 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             var pages = _oneNoteApp.GetPages(sectionNote);
 
-            var resourceFolderPath = Path.Combine(section.GetNotebookName(), "_resources");
+            var resourceFolderPath = Path.Combine(section.GetNotebookPath(), "_resources");
             Directory.CreateDirectory(resourceFolderPath);
+
+            int cmpt = 0;
 
             foreach (Page page in pages)
             {
                 try
                 {
-                    Log.Information($"{page.TitleWithPageLevelTabulation}");
+                    Log.Information($"   Page {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
 
                     Directory.CreateDirectory(page.GetPageFolderRelativePath());
 
@@ -92,7 +94,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 }
                 catch (Exception e)
                 {
-                    Log.Error(Localizer.GetString("ErrorDurringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, e.Message);
+                    Log.Error(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, e.Message);
                 }
             }
         }

@@ -7,15 +7,15 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
 {
     public class AppSettings
     {
-        public bool Debug { get; internal set; } = false;
+        public bool Debug { get; set; } = false;
 
-        public bool PostProcessingMdImgRef { get; internal set; } = true;
+        public bool PostProcessingMdImgRef { get; set; } = true;
 
-        public bool PostProcessingRemoveQuotationBlocks { get; internal set; } = true;
+        public bool PostProcessingRemoveQuotationBlocks { get; set; } = true;
 
-        public bool PostProcessingRemoveOneNoteHeader { get; internal set; } = true;
+        public bool PostProcessingRemoveOneNoteHeader { get; set; } = true;
 
-        public bool RemoveConsecutiveLinebreaks { get; internal set; } = true;
+        public bool RemoveConsecutiveLinebreaks { get; set; } = true;
 
         public static AppSettings LoadAppSettings()
         {

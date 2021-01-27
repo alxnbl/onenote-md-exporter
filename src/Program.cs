@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace alxnbl.OneNoteMdExporter
 {
@@ -19,28 +20,33 @@ namespace alxnbl.OneNoteMdExporter
             InitLogger();
             var onenoteApp = new Application();
 
+
+            var assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+
             Log.Debug($"CurrentCulture : {CultureInfo.CurrentCulture}");
+            Log.Debug($"OneNoteMdExporter version {assemblyVersion}");
 
             var notebooks = onenoteApp.GetNotebooks();
 
 
-            Console.WriteLine("-----------------------");
-            Console.WriteLine("- OneNote Md Exporter -");
-            Console.WriteLine("-----------------------\n");
+            Log.Information("-----------------------");
+            Log.Information("- OneNote Md Exporter -");
+            Log.Information($"       v{assemblyVersion}");
+            Log.Information("-----------------------\n");
 
-            Console.WriteLine(Localizer.GetString("NotebookFounds"), notebooks.Count);
-            Console.WriteLine(Localizer.GetString("ExportAllNotebooks"));
+            Log.Information(Localizer.GetString("NotebookFounds"), notebooks.Count);
+            Log.Information(Localizer.GetString("ExportAllNotebooks"));
 
             for (int i=1; i<=notebooks.Count; i++)
             {
-                Console.WriteLine(Localizer.GetString("ExportNotebookPositionX"), i, notebooks.ElementAt(i-1).Title);
+                Log.Information(Localizer.GetString("ExportNotebookPositionX"), i, notebooks.ElementAt(i-1).Title);
             }
 
             var input = Console.ReadLine();
             
             if(!Int32.TryParse(input, out var inputInt))
             {
-                Console.WriteLine(Localizer.GetString("BadInput"));
+                Log.Information(Localizer.GetString("BadInput"));
                 return;
             }
 
@@ -58,26 +64,26 @@ namespace alxnbl.OneNoteMdExporter
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    Console.WriteLine(Localizer.GetString("NotebookNotFound"));
+                    Log.Information(Localizer.GetString("NotebookNotFound"));
                     return;
                 }
             }
 
 
-            Console.WriteLine(Localizer.GetString("ChooseExportFormat"));
-            Console.WriteLine(Localizer.GetString("ChooseExportFormat1"));
-            Console.WriteLine(Localizer.GetString("ChooseExportFormat2"));
+            Log.Information(Localizer.GetString("ChooseExportFormat"));
+            Log.Information(Localizer.GetString("ChooseExportFormat1"));
+            Log.Information(Localizer.GetString("ChooseExportFormat2"));
 
 
             var exportFormatTxt = Console.ReadLine();
 
 
-            Console.WriteLine("");
+            Log.Information("");
 
 
             if (!Enum.TryParse<ExportFormat>(exportFormatTxt, true, out var exportFormat))
             {
-                Console.WriteLine(Localizer.GetString("BadInput"));
+                Log.Information(Localizer.GetString("BadInput"));
                 return;
             }
 
@@ -85,22 +91,29 @@ namespace alxnbl.OneNoteMdExporter
 
             foreach (Notebook notebook in notebookToProcess)
             {
-                Console.WriteLine(Localizer.GetString("StartExportingNotebook"), notebook.Title);
+                Log.Information("\n***************************************");
+                Log.Information(Localizer.GetString("StartExportingNotebook"), notebook.Title);
+                Log.Information("***************************************");
 
                 exportService.ExportNotebook(notebook);
                 var exportPath = Path.GetFullPath(notebook.Title);
 
-                Console.WriteLine("");
-                Console.WriteLine(Localizer.GetString("ExportSuccessful"), exportPath);
-                Console.WriteLine("");
+                Log.Information("");
+                Log.Information(Localizer.GetString("ExportSuccessful"), exportPath);
+                Log.Information("");
             }
+
+
+            Log.Information(Localizer.GetString("EndOfExport"));
+
+            Console.ReadLine();
         }
 
         private static void InitLogger()
         {
             Log.Logger = new LoggerConfiguration()
-               .WriteTo.File("consoleapp.log")
-               .WriteTo.Console(Serilog.Events.LogEventLevel.Debug)
+               .WriteTo.File("OneNoteMdExporter.log")
+               .WriteTo.Console(Serilog.Events.LogEventLevel.Information, "{Message:lj}{NewLine}")
                .CreateLogger();
         }
     }

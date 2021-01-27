@@ -5,14 +5,15 @@ It offers an alternative to migration based on EverNote export (OneNote-> ENEX -
 
 # Requirements
 
+The tool requires Microsoft Office to be installed, [OneNote for Windows 10](https://www.microsoft.com/en-us/p/onenote-for-windows-10/9wzdncrfhvjl) is not supported.
+
 Tested on : 
 * Windows 10
 * Office 2016
 * Joplin 1.6
+* PanDoc 2.11
 
-Please tell me if you have tested the tool on other versions.
-
-# Import to Joplin
+# Export to Joplin
 
 Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one best suited to your notes.
 
@@ -41,10 +42,12 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 <br/>
 
 # User guide
+
 ## Installation
 
 * Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/5.0
 * Install PanDoc : https://pandoc.org/installing.html
+* Download the last release of OneNoteMdExporter from [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
 * Unzip OneNote Md Exporter
 
 ## Usage
@@ -52,7 +55,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 1. Open OneNote
    * Launch OneNote and be sure that notebooks to export are opened
 2. Export
-   * Start OneNoteMdExporter.exe
+  * From OneNoteMdExporter folder, start *alxnbl.OneNoteMdExporter.exe*
    * Choose the Notebook to export
    * Choose the destination format
    * Go take a coffee ☕
@@ -60,22 +63,28 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
    * From Joplin windows app, File > Import > "RAW - Joplin Export Directory"
 
 
+## Build sources
+
+* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/5.0
+* Install PanDoc : https://pandoc.org/installing.html
+* Clone this repository
+* From src folder, run `dotnet build` then `dotnet run`
+
 # Technical characteristics
 
 * DotNet 5 console application
 * Offline : no call to Microsoft cloud
 * Load Notebook tree using Office Interop APIs
 * Export page as DocX and translate them in Md (GitHub Flavor) using PanDoc
-* Apply some post-processing based on Regex to correct some formatting issues
-* Customizable : post-processing can be disabled in settings
+* Apply some post-processing based on Regex to correct formatting issues
 * Extensible : new export format can be easily added to the code
 
 # Disclaimer
 
-⚠️ Future Joplin version may introduce modifications in the Joplin RAW Export Directory format preventing import with this tool to work correctly. If it appens please open an issue, I will do my best to keep the tool up-to-date. 
+Some data can be lost during the export process. I recommand you to review your notes after Joplin import and keep a backup of your OneNote notebooks just in case.
 
 #  Contributions
 
-In case of error or undesired behavior, please open an issue. 
+Bugs and enhancements can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues. 
 
 Contribution are welcome, please open a PR.
