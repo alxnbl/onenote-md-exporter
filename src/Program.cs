@@ -102,6 +102,11 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("ExportSuccessful"), exportPath);
                 Log.Information("");
             }
+
+
+            Log.Information(Localizer.GetString("EndOfExport"));
+
+            Console.ReadLine();
         }
 
         private static void InitLogger()
