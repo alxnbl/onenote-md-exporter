@@ -1,6 +1,6 @@
 **OneNode Md Export** is a console application running on Windows that exports your OneNote notebooks in different markdown formats. Currently, **Joplin markdown directory** and **Markdown directory** are supported.
 
-The main objective of this repository is to offer to OneNote users the most simple and lossless solution to migrate to Joplin.
+The first objective of this tool is to offer to OneNote users the most simple and lossless solution to migrate to Joplin.
 It offers an alternative to migration based on EverNote export (OneNote-> ENEX -> Joplin), in particular for people organizing their notes using hierarchy of sections and hierarchy of pages, lost during EverNote import.
 
 # Requirements
@@ -12,6 +12,8 @@ Tested on :
 * Office 2016
 * Joplin 1.6
 * PanDoc 2.11
+
+I have not yet tested the tool with Office 365. Please let me know if you did.
 
 # Export to Joplin
 
@@ -45,7 +47,6 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 
 ## Installation
 
-* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/5.0
 * Install PanDoc : https://pandoc.org/installing.html
 * Download the last release of OneNoteMdExporter from [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
 * Unzip OneNote Md Exporter
