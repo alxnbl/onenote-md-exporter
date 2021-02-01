@@ -16,6 +16,8 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         public bool PostProcessingRemoveOneNoteHeader { get; set; } = true;
 
         public bool RemoveConsecutiveLinebreaks { get; set; } = true;
+        
+        public bool UserTempFolder { get; set; } = true;
 
         public static AppSettings LoadAppSettings()
         {

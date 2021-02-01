@@ -28,13 +28,13 @@ namespace alxnbl.OneNoteMdExporter.Services
         public string ConvertDocxToMd(Page page, string inputFilePath, string resourceFolderPath, int sectionTreeLevel)
         {
            
-            var mdFilePath = Path.Combine("_tmp", page.TitleWithNoInvalidChars + ".md");
+            var mdFilePath = Path.Combine("tmp", page.TitleWithNoInvalidChars + ".md");
 
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\"  " +
                             $"--to gfm " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
                             $"--wrap=none " + // Mandatory to avoid random quote bloc to be added to markdown
-                            $"--extract-media=\"_tmp\"";
+                            $"--extract-media=\"tmp\"";
 
             var startInfo = new ProcessStartInfo
             {

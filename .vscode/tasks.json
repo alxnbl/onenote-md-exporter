@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/alxnbl.OneNoteMdExporter.csproj",
+                "${workspaceFolder}/src/alxnbl.OneNoteMdExporter.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/alxnbl.OneNoteMdExporter.csproj",
+                "${workspaceFolder}/src/alxnbl.OneNoteMdExporter.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/alxnbl.OneNoteMdExporter.csproj",
+                "${workspaceFolder}/src/alxnbl.OneNoteMdExporter.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
