@@ -67,8 +67,18 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             var sectionMdFileContent = AddJoplinNodeMetadata(section, "");
             var notebookFolder = section.GetNotebookPath();
-            var docxFolder = Path.Combine("tmp", notebookFolder);
-            Directory.CreateDirectory(docxFolder);
+
+            string onExportFolder;
+            
+            if(_appSettings.UserTempFolder)
+            {
+                onExportFolder = Path.GetTempPath();
+            }
+            else 
+            {
+                onExportFolder = Path.Combine("tmp", notebookFolder);
+                Directory.CreateDirectory(onExportFolder);
+            }
 
             // Write Section Md File
             File.WriteAllText(Path.Combine(notebookFolder, $"{section.Id}.md"), sectionMdFileContent);
@@ -88,7 +98,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 {
                     Log.Information($"   Page {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
 
-                    var docxFilePath = Path.Combine(docxFolder, page.Id + ".docx");
+                    var docxFilePath = Path.Combine(onExportFolder, page.Id + ".docx");
 
                     try
                     {
