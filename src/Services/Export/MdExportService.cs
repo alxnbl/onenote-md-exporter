@@ -30,6 +30,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             if (Directory.Exists("tmp"))
                 Directory.Delete("tmp", true);
+            Directory.CreateDirectory("tmp");
 
             _oneNoteApp.FillNodebookTree(notebook);
 
