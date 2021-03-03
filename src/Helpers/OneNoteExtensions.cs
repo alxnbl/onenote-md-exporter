@@ -161,7 +161,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                 var pageTitleOE = xmlPageContent.Descendants(ns + "Title")?.FirstOrDefault()?.Descendants(ns + "OE")?.FirstOrDefault();
                 if (pageTitleOE != null)
                 {
-                    page.Author = pageTitleOE.Attribute("author").Value;
+                    page.Author = pageTitleOE.Attribute("author")?.Value ?? "unknown";
                 }
 
                 ProcessPageAttachments(ns, page, xmlPageContent);
