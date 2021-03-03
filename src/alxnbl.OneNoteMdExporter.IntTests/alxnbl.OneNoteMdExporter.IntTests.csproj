@@ -1,23 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- COMReference of OneNoteMdExporter not yet supported by DotNet5 -->
+    <PackageReference Include="Interop.Microsoft.Office.Interop.OneNote" Version="1.1.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\alxnbl.OneNoteMdExporter\alxnbl.OneNoteMdExporter.csproj" />
+    <Folder Include="Resources\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
+    <!-- DotNet3 do not include .deps and runtime file for project reference : https://github.com/dotnet/sdk/issues/1675  -->
+    <ProjectReference Include="..\alxnbl.OneNoteMdExporter\alxnbl.OneNoteMdExporter.csproj" />
   </ItemGroup>
 
 </Project>

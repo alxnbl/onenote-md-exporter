@@ -22,7 +22,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             _convertServer = converterService;
         }
 
-        public void ExportNotebook(Notebook notebook)
+        public void ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
 
             if (Directory.Exists(notebook.Title))
@@ -34,7 +34,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             _oneNoteApp.FillNodebookTree(notebook);
 
-            var sections = notebook.GetSections();
+            var sections = notebook.GetSections().Where(s => string.IsNullOrEmpty(sectionNameFilter) || s.Title == sectionNameFilter).ToList();
 
             Log.Information($"--> Found {sections.Count} sections\n");
 
@@ -44,17 +44,17 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 cmpt++;
                 Log.Information($"Start processing section ({cmpt}/{sections.Count()}) :  {section.GetPath()}/{section.Title}");
 
-                ExportSection(section);
+                ExportSection(section, pageNameFilter);
             }
         }
 
 
-        private void ExportSection(Node section)
+        private void ExportSection(Node section, string pageNameFilter="")
         {
             if (!(section is Section sectionNote) || sectionNote.IsSectionGroup)
                 throw new InvalidOperationException("Cannot call ExportSection on section group with MdExport");
 
-            var pages = _oneNoteApp.GetPages(sectionNote);
+            var pages = _oneNoteApp.GetPages(sectionNote).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
 
             var resourceFolderPath = Path.Combine(section.GetNotebookPath(), "_resources");
             Directory.CreateDirectory(resourceFolderPath);

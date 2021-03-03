@@ -19,17 +19,29 @@ namespace alxnbl.OneNoteMdExporter
         {
             [Option('n', "notebook", Required = false, HelpText = "The name of the notebook to export")]
             public string NotebookName { get; set; }
+
+            [Option('f', "format", Required = false, HelpText = "The format of export : 1 for Markdown folder ; 2 for Joplin folder")]
+            public string ExportFormat { get; set; }
+
+            [Option('s', "section", Required = false, HelpText = "The name of the section to export. Apply only if notebook parameter used.")]
+            public string SectionName { get; set; }
+
+            [Option('p', "page", Required = false, HelpText = "The name of the section page to export. Apply only if section parameter used.")]
+            public string PageName { get; set; }
         }
 
 
         public static void Main(params string[] args)
         {
             Parser.Default.ParseArguments<Options>(args)
-                   .WithParsed(RunOptions)
-                   .WithNotParsed(err =>
-                   {
-                       Console.WriteLine("Unable to parse arguments");
-                   });
+                   .WithParsed(options => {
+                       if (string.IsNullOrEmpty(options.NotebookName))
+                           options.SectionName = string.Empty;
+                       if (string.IsNullOrEmpty(options.SectionName))
+                           options.PageName = string.Empty;
+
+                       RunOptions(options);
+                    });
         }
 
         private static OneNote.Application OneNoteApp;
@@ -69,7 +81,7 @@ namespace alxnbl.OneNoteMdExporter
             if (notebookToProcess.Count == 0)
                 return;
 
-            ExportFormat exportFormat = ExportFormatSelectionForm();
+            ExportFormat exportFormat = ExportFormatSelectionForm(opts.ExportFormat);
 
             if (exportFormat == ExportFormat.Undefined)
                 return;
@@ -82,7 +94,7 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("StartExportingNotebook"), notebook.Title);
                 Log.Information("***************************************");
 
-                exportService.ExportNotebook(notebook);
+                exportService.ExportNotebook(notebook, opts.SectionName, opts.PageName);
                 var exportPath = Path.GetFullPath(notebook.Title);
 
                 Log.Information("");
@@ -96,18 +108,21 @@ namespace alxnbl.OneNoteMdExporter
             Console.ReadLine();
         }
 
-        private static ExportFormat ExportFormatSelectionForm()
+        private static ExportFormat ExportFormatSelectionForm(string optsExportFormat = "")
         {
-            Log.Information(Localizer.GetString("ChooseExportFormat"));
-            Log.Information(Localizer.GetString("ChooseExportFormat1"));
-            Log.Information(Localizer.GetString("ChooseExportFormat2"));
+            if (string.IsNullOrEmpty(optsExportFormat))
+            {
+                Log.Information(Localizer.GetString("ChooseExportFormat"));
+                Log.Information(Localizer.GetString("ChooseExportFormat1"));
+                Log.Information(Localizer.GetString("ChooseExportFormat2"));
 
-            var exportFormatTxt = Console.ReadLine();
+                optsExportFormat = Console.ReadLine();
 
-            Log.Information("");
+                Log.Information("");
+            }
 
 
-            if (!Enum.TryParse<ExportFormat>(exportFormatTxt, true, out var exportFormat))
+            if (!Enum.TryParse<ExportFormat>(optsExportFormat, true, out var exportFormat))
             {
                 Log.Information(Localizer.GetString("BadInput"));
                 return ExportFormat.Undefined;
@@ -121,7 +136,7 @@ namespace alxnbl.OneNoteMdExporter
             var notebook = OneNoteApp.GetNotebooks().Where(n => n.Title == notebookName).ToList(); // can be optimized
 
             if(notebook.Count == 0)
-                Log.Information(Localizer.GetString("NotebookNotFound"), notebookName);
+                Log.Information(Localizer.GetString("NotebookNameNotFound"), notebookName);
 
             return notebook;
         }

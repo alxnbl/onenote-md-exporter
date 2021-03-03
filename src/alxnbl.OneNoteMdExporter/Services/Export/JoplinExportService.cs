@@ -25,7 +25,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             _convertServer = converterService;
         }
 
-        public void ExportNotebook(Notebook notebook)
+        public void ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
 
             if (Directory.Exists(notebook.GetPath()))
@@ -46,7 +46,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 return;
             }
 
-            var sections = notebook.GetSections(true);
+            var sections = notebook.GetSections(true).Where(s => string.IsNullOrEmpty(sectionNameFilter) || s.Title == sectionNameFilter).ToList();
 
             Log.Information($"--> Found {sections.Count} sections and sections groups\n");
 
@@ -59,11 +59,11 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 cmpt++;
                 Log.Information($"Start processing section ({cmpt}/{sections.Count()}) :  {section.GetPath()}\\{section.Title}");
 
-                ExportSection(section);
+                ExportSection(section, pageNameFilter);
             }
         }
 
-        private void ExportSection(Node section)
+        private void ExportSection(Node section, string pageNameFilter = "")
         {
             var sectionMdFileContent = AddJoplinNodeMetadata(section, "");
             var notebookFolder = section.GetNotebookPath();
@@ -88,7 +88,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // For leaf section, export pages
                 Log.Debug($"Start export pages of section {section.Title}");
 
-                var pages = _oneNoteApp.GetPages(sectionNode);
+                var pages = _oneNoteApp.GetPages(sectionNode).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
                 var resourceFolderPath = Path.Combine(notebookFolder, "resources");
                 Directory.CreateDirectory(resourceFolderPath);
 
