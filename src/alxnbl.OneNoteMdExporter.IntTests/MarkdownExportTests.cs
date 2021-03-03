@@ -17,6 +17,7 @@ namespace alxnbl.OneNoteMdExporter.IntTests
         {
             var res = TestHelper.RunExporter("1", "TestBloc", "Image", "Simple image");
 
+
             // http://regexstorm.net/tester
             string regexImgAttributes = "!\\[.*\\]\\((?<path>\\.\\./_resources/)(?<filename>.*)\\)";
 
