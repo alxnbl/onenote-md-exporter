@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace alxnbl.OneNoteMdExporter.IntTests.Helpers
 {
     public static class TestHelper
     {
-        public static (string output, int exitCode) RunExporter(string args = "")
+        public static (string output, int exitCode, string exportResult) RunExporter(string format, string notebook, string section, string page)
         {
+            string args = $"-f \"{format}\" -n \"{notebook}\" -s \"{section}\" -p \"{page}\" --no-input";
 
             var startInfo = new ProcessStartInfo
             {
@@ -33,9 +35,16 @@ namespace alxnbl.OneNoteMdExporter.IntTests.Helpers
                     output = exeProcess.StandardOutput.ReadToEnd();
                 }
 
-                return (output: output, exitCode: exeProcess.ExitCode);
+                string exportResult = format == "1" ? TestHelper.GetMdExportResult(notebook, section, page) : "";
+
+                return (output, exeProcess.ExitCode, exportResult);
             }
 
+        }
+
+        public static string GetMdExportResult(string notebook, string section, string page)
+        {
+            return File.ReadAllText(Path.Combine(notebook, section, page + ".md"));
         }
     }
 }

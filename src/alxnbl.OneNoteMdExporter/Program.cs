@@ -28,6 +28,9 @@ namespace alxnbl.OneNoteMdExporter
 
             [Option('p', "page", Required = false, HelpText = "The name of the section page to export. Apply only if section parameter used.")]
             public string PageName { get; set; }
+
+            [Option("no-input", Required = false, HelpText = "Do not request user input")]
+            public bool NoInput { get; set; }
         }
 
 
@@ -102,10 +105,11 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information("");
             }
 
-
-            Log.Information(Localizer.GetString("EndOfExport"));
-
-            Console.ReadLine();
+            if (!opts.NoInput)
+            {
+                Log.Information(Localizer.GetString("EndOfExport"));
+                Console.ReadLine();
+            }
         }
 
         private static ExportFormat ExportFormatSelectionForm(string optsExportFormat = "")
@@ -127,6 +131,8 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("BadInput"));
                 return ExportFormat.Undefined;
             }
+
+            Log.Debug($"Format choosen: {exportFormat}");
 
             return exportFormat;
         }
@@ -182,7 +188,7 @@ namespace alxnbl.OneNoteMdExporter
         private static void InitLogger()
         {
             Log.Logger = new LoggerConfiguration()
-               .WriteTo.File("OneNoteMdExporter.log")
+               .WriteTo.File("alxnbl.OneNoteMdExporter.log", outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                .WriteTo.Console(Serilog.Events.LogEventLevel.Information, "{Message:lj}{NewLine}")
                .CreateLogger();
         }
