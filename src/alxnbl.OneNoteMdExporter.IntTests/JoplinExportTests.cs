@@ -1,6 +1,8 @@
 using alxnbl.OneNoteMdExporter.IntTests.Helpers;
 using NUnit.Framework;
+using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.IntTests
 {
@@ -12,11 +14,11 @@ namespace alxnbl.OneNoteMdExporter.IntTests
         }
 
         [Test]
-        public void ExecArguments_NotebookNameNotFound()
+        public void Image_SimpleImage()
         {
-            var res = TestHelper.RunExporter(" -n TestBloc");
+            var res = TestHelper.RunExporter("2", "TestBloc", "Image", "Simple image");
 
-            Assert.Pass();
+            throw new NotImplementedException();
         }
     }
 }

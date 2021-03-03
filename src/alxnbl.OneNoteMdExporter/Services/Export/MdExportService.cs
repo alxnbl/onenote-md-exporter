@@ -79,7 +79,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                     try
                     {
-                        mdFileContent = _convertServer.ExtractImagesToResourceFolder(page, mdFileContent, resourceFolderPath, mdFilePath, true, _appSettings.PostProcessingMdImgRef);
+                        mdFileContent = _convertServer.ExtractImagesToResourceFolder(page, mdFileContent, resourceFolderPath, mdFilePath, false, _appSettings.PostProcessingMdImgRef);
                     }
                     catch (Exception ex)
                     {
