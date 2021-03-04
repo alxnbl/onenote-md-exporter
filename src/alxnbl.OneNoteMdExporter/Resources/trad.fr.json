@@ -13,5 +13,6 @@
   "ErrorDuringPageProcessing": "Erreur durant le traitement de la page [{1}]. Page ignorée. Message d'erreur : {2}",
   "ErrorDuringSectionProcessing": "Erreur durant le traitement de la section {0} [{1}]. Message d'erreur : {2}",
   "ErrorDuringNotebookProcessingNbTree": "Erreur durant le traitement du bloc-note {0} [{1}]. Impossible de charger l'arborescence. Message d'erreur : {2}",
-  "EndOfExport": "\nAppuyez sur une touche pour quitter..."
+  "EndOfExport": "\nAppuyez sur une touche pour quitter...",
+  "NotebookNameNotFound": "Le blocNote '{0}' n'a pas été trouvé. Est-il bien ouvert dans OneNote ?"
 }

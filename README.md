@@ -5,15 +5,15 @@ It offers an alternative to migration based on EverNote export (OneNote-> ENEX -
 
 # Requirements
 
-The tool requires Microsoft Office to be installed, [OneNote for Windows 10](https://www.microsoft.com/en-us/p/onenote-for-windows-10/9wzdncrfhvjl) is not supported.
+The tool requires Microsoft Office to be installed, at least OneNote and Word. 
+
+[OneNote for Windows 10](https://www.microsoft.com/en-us/p/onenote-for-windows-10/9wzdncrfhvjl) is not supported.
 
 Tested on : 
-* Windows 10
+* Windows 7, 10
 * Office 2016
 * Joplin 1.6
 * PanDoc 2.11
-
-I have not yet tested the tool with Office 365. Please let me know if you did.
 
 # Export to Joplin
 
@@ -63,26 +63,32 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 3. [For Joplin Users] Import
    * From Joplin windows app, File > Import > "RAW - Joplin Export Directory"
 
+In case of error during export very that :
+* OneNote and Word are correctly installed
+* OneNote is open before running the tool
+* Both OneNote and the tool are NOT run as administrator
+* PanDoc is correctly installed
 
 ## Build sources
 
-* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/5.0
+* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/3.1
 * Install PanDoc : https://pandoc.org/installing.html
 * Clone this repository
-* From src folder, run `dotnet build` then `dotnet run`
+* Build using Visual Studio 2019 or MSBUILD.exe (`dotnet build` do not currently support COMReference : https://aka.ms/msbuild/MSB4803) 
 
 # Technical characteristics
 
-* DotNet 5 console application
+* DotNet 5 self-contained console application
 * Offline : no call to Microsoft cloud
 * Load Notebook tree using Office Interop APIs
 * Export page as DocX and translate them in Md (GitHub Flavor) using PanDoc
 * Apply some post-processing based on Regex to correct formatting issues
 * Extensible : new export format can be easily added to the code
+* Begining of integration test (need to be completed)
 
 # Disclaimer
 
-Some data can be lost during the export process. I recommand you to review your notes after Joplin import and keep a backup of your OneNote notebooks just in case.
+Some data can be lost during the export process. I recommand you to review your notes after export and keep a backup of your OneNote notebooks just in case.
 
 #  Contributions
 
