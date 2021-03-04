@@ -74,7 +74,7 @@ In case of error during export very that :
 * Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/3.1
 * Install PanDoc : https://pandoc.org/installing.html
 * Clone this repository
-* Build using Visual Studio 2019 (`dotnet build` currently not support COMReference : https://aka.ms/msbuild/MSB4803)
+* Build using Visual Studio 2019 or MSBUILD.exe (`dotnet build` do not currently support COMReference : https://aka.ms/msbuild/MSB4803) 
 
 # Technical characteristics
 
