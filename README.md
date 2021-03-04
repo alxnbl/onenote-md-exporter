@@ -71,14 +71,14 @@ In case of error during export very that :
 
 ## Build sources
 
-* Install DotNet 3.1 : https://dotnet.microsoft.com/download/dotnet/3.1
+* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/3.1
 * Install PanDoc : https://pandoc.org/installing.html
 * Clone this repository
 * Build using Visual Studio 2019 (`dotnet build` currently not support COMReference : https://aka.ms/msbuild/MSB4803)
 
 # Technical characteristics
 
-* DotNet 3.1 self-contained console application
+* DotNet 5 self-contained console application
 * Offline : no call to Microsoft cloud
 * Load Notebook tree using Office Interop APIs
 * Export page as DocX and translate them in Md (GitHub Flavor) using PanDoc
