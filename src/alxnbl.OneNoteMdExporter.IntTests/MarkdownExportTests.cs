@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.IntTests
 {
-    public class MarkdownExportTests
+    public class MarkdownExportTests : ExportTests
     {
         [SetUp]
         public void Setup()
@@ -13,7 +13,7 @@ namespace alxnbl.OneNoteMdExporter.IntTests
         }
 
         [Test]
-        public void Image_SimpleImage()
+        public override void Image_SimpleImage()
         {
             var res = TestHelper.RunExporter("1", "TestBloc", "Image", "Simple image");
 

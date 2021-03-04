@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.IntTests
 {
-    public class JoplinExportTests
+    public class JoplinExportTests : ExportTests
     {
         [SetUp]
         public void Setup()
@@ -14,7 +14,7 @@ namespace alxnbl.OneNoteMdExporter.IntTests
         }
 
         [Test]
-        public void Image_SimpleImage()
+        public override void Image_SimpleImage()
         {
             var res = TestHelper.RunExporter("2", "TestBloc", "Image", "Simple image");
 
