@@ -56,7 +56,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 1. Open OneNote
    * Launch OneNote and be sure that notebooks to export are opened
 2. Export
-  * From OneNoteMdExporter folder, start *alxnbl.OneNoteMdExporter.exe*
+  * From OneNoteMdExporter folder, start `alxnbl.OneNoteMdExporter.exe`
    * Choose the Notebook to export
    * Choose the destination format
    * Go take a coffee ☕
@@ -69,12 +69,23 @@ In case of error during export very that :
 * Both OneNote and the tool are NOT run as administrator
 * PanDoc is correctly installed
 
+## Command line
+
+Run `alxnbl.OneNoteMdExporter.exe --help` for instructions.
+
 ## Build sources
 
 * Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/3.1
 * Install PanDoc : https://pandoc.org/installing.html
 * Clone this repository
 * Build using Visual Studio 2019 or MSBUILD.exe (`dotnet build` do not currently support COMReference : https://aka.ms/msbuild/MSB4803) 
+
+## Translation
+
+You can contribute by adding translation in your language. You just need to :
+* fork the repo
+* copy file `/src/Resources/trad.en.json`, translate it, and save the new file into `trad.<TwoLetterLanguageCode>.json`  (list of language code [here](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes)).
+* send a [pull-request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) 
 
 # Technical characteristics
 
@@ -92,6 +103,6 @@ Some data can be lost during the export process. I recommand you to review your 
 
 #  Contributions
 
-Bugs and enhancements can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues. 
+Bugs and enhancements can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues.
 
 Contribution are welcome, please open a PR.

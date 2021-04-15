@@ -89,23 +89,47 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// <param name="mdFilePath">Path where the md file will be exported</param>
         public string PostConvertion(Page page, string mdFileContent, string resourceFolderPath, string mdFilePath, bool joplinResourceRef)
         {
+            var mdFileContentResult = mdFileContent;
+
+
+            if (_appSettings.RemoveCarriageReturn)
+            {
+                mdFileContentResult = RemoveCarriageReturn(mdFileContentResult);
+            }
+
             if (_appSettings.PostProcessingRemoveQuotationBlocks)
             {
-                mdFileContent = RemoveQuotationBlocks(mdFileContent);
+                mdFileContentResult = RemoveQuotationBlocks(mdFileContentResult);
             }
 
             if (_appSettings.RemoveConsecutiveLinebreaks)
             {
-                mdFileContent = RemoveConsecutiveLinebreaks(mdFileContent);
+                mdFileContentResult = RemoveConsecutiveLinebreaks(mdFileContentResult);
             }
 
 
             if (_appSettings.PostProcessingRemoveOneNoteHeader)
             {
-                mdFileContent = RemoveOneNoteHeader(mdFileContent);
+                mdFileContentResult = RemoveOneNoteHeader(mdFileContentResult);
             }
 
-            return mdFileContent;
+            return mdFileContentResult;
+        }
+
+        private string RemoveCarriageReturn(string pageTxt)
+        {
+            // Issue #27
+            // https://stackoverflow.com/questions/2282181/net-regex-dot-character-matches-carriage-return
+            // DotNet regex have weird behavior with \r
+            // Replacing all \r\n into \n to avoid issues with downstream regex
+
+            string regex = @"\r\n";
+            var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
+            {
+                return "\n";
+            });
+
+            return pageTxtModified;
         }
 
         private string RemoveOneNoteHeader(string pageTxt)
@@ -133,11 +157,18 @@ namespace alxnbl.OneNoteMdExporter.Services
 
         private string RemoveQuotationBlocks(string pageTxt)
         {
-            string regex = @"\n>[ \n]*";
+            string regex = @"\n>\n";
             var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
             {
-                return "";
+                return "\n";
             });
+
+            string regex2 = @"\n>[ ]?";
+            pageTxtModified = Regex.Replace(pageTxtModified, regex2, delegate (Match match)
+            {
+                return "\n";
+            });
+
 
             return pageTxtModified;
         }

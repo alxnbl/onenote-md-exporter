@@ -19,6 +19,8 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         
         public bool UserTempFolder { get; set; } = true;
 
+        public bool RemoveCarriageReturn { get; set; } = true;
+
         public static AppSettings LoadAppSettings()
         {
             IConfigurationRoot configRoot = new ConfigurationBuilder()
