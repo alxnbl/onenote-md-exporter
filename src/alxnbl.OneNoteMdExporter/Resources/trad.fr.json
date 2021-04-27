@@ -1,5 +1,6 @@
 ﻿{
-  "NotebookFounds": "{0} bloc-notes trouvés.\n\nMerci d'entrer le numéro du bloc-note à exporter : ",
+  "NotebookFounds": "{0} bloc-notes trouvés.",
+  "PleaseChooseNotebookToExport": "Merci d'entrer le numéro du bloc-note à exporter : ",
   "ExportAllNotebooks": "[0] Exporter tous les bloc-notes",
   "ErrorImageExtract": "Erreur pendant l'extraction des images de la page.",
   "ExportNotebookPositionX": "[{0}] {1}",
@@ -14,5 +15,8 @@
   "ErrorDuringSectionProcessing": "Erreur durant le traitement de la section {0} [{1}]. Message d'erreur : {2}",
   "ErrorDuringNotebookProcessingNbTree": "Erreur durant le traitement du bloc-note {0} [{1}]. Impossible de charger l'arborescence. Message d'erreur : {2}",
   "EndOfExport": "\nAppuyez sur une touche pour quitter...",
-  "NotebookNameNotFound": "Le blocNote '{0}' n'a pas été trouvé. Est-il bien ouvert dans OneNote ?"
+  "NotebookNameNotFound": "Le blocNote '{0}' n'a pas été trouvé. Est-il bien ouvert dans OneNote ?",
+  "WelcomeMessage": "Avant de continuer, merci de vérifier que :\n\n* OneNote et Word de la suite Office sont correctement installés\n* OneNote est lancé et les Blocnotes que vous souhaitez exporter sont ouverts\n* Le logiciel PanDoc est installé (https://pandoc.org/installing.html)\n* Cet utilitaire et OneNote sont lancés avec des privilèges normaux (PAS en tant qu'administrateur)\n",
+  "PressEnter": "Press Enter to continue..."
+
 }

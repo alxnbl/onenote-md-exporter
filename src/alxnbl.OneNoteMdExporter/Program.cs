@@ -31,8 +31,10 @@ namespace alxnbl.OneNoteMdExporter
 
             [Option("no-input", Required = false, HelpText = "Do not request user input")]
             public bool NoInput { get; set; }
-        }
 
+            [Option("debug", Required = false, HelpText = "Debug mode.")]
+            public bool Debug { get; set; }
+        }
 
         public static void Main(params string[] args)
         {
@@ -52,21 +54,13 @@ namespace alxnbl.OneNoteMdExporter
         private static void RunOptions(Options opts)
         {
             var appSettings = AppSettings.LoadAppSettings();
+            appSettings.Debug = opts.Debug;
+
             InitLogger();
 
             OneNoteApp = new OneNote.Application();
 
-
-            var assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
-
-            Log.Debug($"CurrentCulture : {CultureInfo.CurrentCulture}");
-            Log.Debug($"OneNoteMdExporter version {assemblyVersion}");
-
-            Log.Information("-----------------------");
-            Log.Information("- OneNote Md Exporter -");
-            Log.Information($"       v{assemblyVersion}");
-            Log.Information("-----------------------\n");
-
+            WelcomeScreen(opts);
 
             IList<Notebook> notebookToProcess;
 
@@ -112,6 +106,26 @@ namespace alxnbl.OneNoteMdExporter
             }
         }
 
+        private static void WelcomeScreen(Options opts)
+        {
+            var assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+
+            Log.Debug($"CurrentCulture : {CultureInfo.CurrentCulture}");
+            Log.Debug($"OneNoteMdExporter version {assemblyVersion}");
+
+            Log.Information("-----------------------");
+            Log.Information("- OneNote Md Exporter -");
+            Log.Information($"       v{assemblyVersion}");
+            Log.Information("-----------------------\n");
+
+            Log.Information(Localizer.GetString("WelcomeMessage"));
+            Log.Information(Localizer.GetString("PressEnter"));
+
+
+            if (!opts.NoInput)
+                Console.ReadLine();
+        }
+
         private static ExportFormat ExportFormatSelectionForm(string optsExportFormat = "")
         {
             if (string.IsNullOrEmpty(optsExportFormat))
@@ -151,7 +165,12 @@ namespace alxnbl.OneNoteMdExporter
         {
             var notebooks = OneNoteApp.GetNotebooks();
 
+            Log.Information("\n***************************************");
             Log.Information(Localizer.GetString("NotebookFounds"), notebooks.Count);
+            Log.Information("***************************************\n");
+
+            Log.Information(Localizer.GetString("PleaseChooseNotebookToExport"));
+            
             Log.Information(Localizer.GetString("ExportAllNotebooks"));
 
             for (int i = 1; i <= notebooks.Count; i++)

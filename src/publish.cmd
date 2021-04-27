@@ -1,7 +1,12 @@
 set version=%1
+set msbuild="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MsBuild.exe"
 
-dotnet publish alxnbl.OneNoteMdExporter\alxnbl.OneNoteMdExporter.csproj --configuration Release --self-contained true -r win7-x64 /p:Version="%version%"
-dotnet publish alxnbl.OneNoteMdExporter\alxnbl.OneNoteMdExporter.csproj --configuration Release --self-contained true -r win7-x86 /p:Version="%version%"
+%msbuild% alxnbl.OneNoteMdExporter\alxnbl.OneNoteMdExporter.csproj /restore /p:Configuration=Release /p:Version="%version%"
 
-tar.exe -a -c -f "OneNoteMdExporter.v%version%"-x64.zip -C bin\Release\net5.0\win7-x64\publish\ *
-tar.exe -a -c -f "OneNoteMdExporter.v%version%"-x86.zip -C bin\Release\net5.0\win7-x86\publish\ *
+xcopy ..\pandoc\pandoc-2.13\COPYING.rtf alxnbl.OneNoteMdExporter\bin\Release\net5.0\win7-x86\pandoc\ /E /C /R /Y
+xcopy ..\pandoc\pandoc-2.13\COPYRIGHT.txt alxnbl.OneNoteMdExporter\bin\Release\net5.0\win7-x86\pandoc\ /E /C /R /Y
+xcopy ..\pandoc\pandoc-2.13\MANUAL.html alxnbl.OneNoteMdExporter\bin\Release\net5.0\win7-x86\pandoc\ /E /C /R /Y
+xcopy ..\pandoc\pandoc-2.13\pandoc.exe alxnbl.OneNoteMdExporter\bin\Release\net5.0\win7-x86\ /E /C /R /Y
+xcopy ..\LICENSE alxnbl.OneNoteMdExporter\bin\Release\net5.0\win7-x86\ /C /R /Y
+
+tar.exe -a -c -f "OneNoteMdExporter.v%version%".zip -C alxnbl.OneNoteMdExporter\bin\Release\net5.0\win7-x86\ *

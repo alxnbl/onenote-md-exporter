@@ -5,8 +5,7 @@ It offers an alternative to migration based on EverNote export (OneNote-> ENEX -
 
 # Requirements
 
-The tool requires Microsoft Office to be installed, at least OneNote and Word. 
-
+The software requires OneNote and Word from the Microsoft Office suite. 
 [OneNote for Windows 10](https://www.microsoft.com/en-us/p/onenote-for-windows-10/9wzdncrfhvjl) is not supported.
 
 Tested on : 
@@ -23,7 +22,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 | --- | --- | --- |
 | Formatted content | ✅ | ✅ |
 | **Hierarchy of sections** | ✅ Sub-Notebooks | 🟠 Flattened as Tag |
-| **Page order inside a section** | ✅ Sub-Notebooks | 🔴 All pages part of a single Notebook |
+| **Page order inside a section** | ✅ | 🔴 All pages part of a single Notebook |
 | **Page hierarchy (level)** | ✅ Page title prefix <br/>(--- \<Page\>) | 🔴 |
 | Attachments  | ✅ At their original position | 🟠 At the end of the page |
 | Note metadata | ✅ | ✅ |
@@ -47,7 +46,6 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 
 ## Installation
 
-* Install PanDoc : https://pandoc.org/installing.html
 * Download the last release of OneNoteMdExporter from [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
 * Unzip OneNote Md Exporter
 
@@ -56,7 +54,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 1. Open OneNote
    * Launch OneNote and be sure that notebooks to export are opened
 2. Export
-  * From OneNoteMdExporter folder, start *alxnbl.OneNoteMdExporter.exe*
+  * From OneNoteMdExporter folder, start `alxnbl.OneNoteMdExporter.exe`
    * Choose the Notebook to export
    * Choose the destination format
    * Go take a coffee ☕
@@ -69,12 +67,23 @@ In case of error during export very that :
 * Both OneNote and the tool are NOT run as administrator
 * PanDoc is correctly installed
 
+## Command line
+
+Run `alxnbl.OneNoteMdExporter.exe --help` for instructions.
+
 ## Build sources
 
-* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/3.1
+* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/5.0
 * Install PanDoc : https://pandoc.org/installing.html
 * Clone this repository
 * Build using Visual Studio 2019 or MSBUILD.exe (`dotnet build` do not currently support COMReference : https://aka.ms/msbuild/MSB4803) 
+
+## Translation
+
+You can contribute by adding translation in your language. You just need to :
+* fork the repo
+* copy file `/src/Resources/trad.en.json`, translate it, and save the new file into `trad.<TwoLetterLanguageCode>.json`  (list of language code [here](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes)).
+* send a [pull-request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) 
 
 # Technical characteristics
 
@@ -86,12 +95,16 @@ In case of error during export very that :
 * Extensible : new export format can be easily added to the code
 * Begining of integration test (need to be completed)
 
-# Disclaimer
+# Licence
 
-Some data can be lost during the export process. I recommand you to review your notes after export and keep a backup of your OneNote notebooks just in case.
+Released under the GPL, version 3.
+
+This software carries no warranty of any kind. Some data can be lost during the export process. I recommand to review your notes after export and keep a backup of your OneNote notebooks just in case.
+
+OneNote Md Exporter embeds PanDoc, a document convertor software, 
 
 #  Contributions
 
-Bugs and enhancements can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues. 
+Bugs and enhancements can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues.
 
 Contribution are welcome, please open a PR.
