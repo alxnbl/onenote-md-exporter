@@ -61,7 +61,7 @@ Comparison between OneNote Md Exporter and ENEX Export methods. Choose the one b
 3. [For Joplin Users] Import
    * From Joplin windows app, File > Import > "RAW - Joplin Export Directory"
 
-In case of error during export very that :
+In case of error during export very that:
 * OneNote and Word are correctly installed
 * OneNote is open before running the tool
 * Both OneNote and the tool are NOT run as administrator
@@ -93,15 +93,24 @@ You can contribute by adding translation in your language. You just need to :
 * Export page as DocX and translate them in Md (GitHub Flavor) using PanDoc
 * Apply some post-processing based on Regex to correct formatting issues
 * Extensible : new export format can be easily added to the code
-* Begining of integration test (need to be completed)
+* Beginning of integration test (need to be completed)
 
 # Licence
 
 Released under the GPL, version 3.
 
-This software carries no warranty of any kind. Some data can be lost during the export process. I recommand to review your notes after export and keep a backup of your OneNote notebooks just in case.
+This software carries no warranty of any kind. Some data can be lost during the export process. I recommend to review your notes after export and keep a backup of your OneNote notebooks just in case.
 
-OneNote Md Exporter embeds PanDoc, a document convertor software, 
+# Pandoc licence terms
+
+OneNote Md Exporter uses PanDoc universal markup converter.
+
+Pandoc is available at https://github.com/jgm/pandoc
+
+Pandoc is released under the following licence terms, full licence details can be found on the pandoc site.
+```
+© 2006-2021 John MacFarlane (jgm@berkeley.edu). Released under the GPL, version 2 or greater. This software carries no warranty of any kind.
+```
 
 #  Contributions
 
