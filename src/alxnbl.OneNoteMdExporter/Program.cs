@@ -32,6 +32,9 @@ namespace alxnbl.OneNoteMdExporter
             [Option("no-input", Required = false, HelpText = "Do not request user input")]
             public bool NoInput { get; set; }
 
+            [Option("all-notebooks", Required = false, HelpText = "Exports all notebooks, if specifed with --notebook, notebook name is ignored.")]
+            public bool AllNotebooks { get; set; }
+
             [Option("debug", Required = false, HelpText = "Debug mode.")]
             public bool Debug { get; set; }
         }
@@ -64,15 +67,23 @@ namespace alxnbl.OneNoteMdExporter
 
             IList<Notebook> notebookToProcess;
 
-            if (string.IsNullOrEmpty(opts.NotebookName))
+            if (!opts.AllNotebooks)
             {
-                // Request user to select notebooks to export
-                notebookToProcess = NotebookSelectionForm();
+                if (string.IsNullOrEmpty(opts.NotebookName))
+                {
+                    // Request user to select notebooks to export
+                    notebookToProcess = NotebookSelectionForm();
+                }
+                else
+                {
+                    // Notebook name provided in args
+                    notebookToProcess = GetNotebookFromName(opts.NotebookName);
+                }
             }
             else
             {
-                // Notebook name provided in args
-                notebookToProcess = GetNotebookFromName(opts.NotebookName);
+                // if all-notebooks specified get all notebooks.
+                notebookToProcess = OneNoteApp.GetNotebooks();
             }
 
             if (notebookToProcess.Count == 0)
