@@ -1,0 +1,23 @@
+﻿{
+  "NotebookFounds": "{0} notebook(s) found(s).",
+  "PleaseChooseNotebookToExport": "Please enter the notebooks number to export : ",
+  "ExportAllNotebooks": "[0] Export all notebooks",
+  "ErrorImageExtract": "Error while extracting images of the page.",
+  "ExportNotebookPositionX": "[{0}] {1}",
+  "NotebookNotFound": "Notebook not found",
+  "BadInput": "Please enter a numeric value",
+  "ChooseExportFormat": "\nPlease choose export format: ",
+  "ChooseExportFormat1": "[1] Markdown folder tree",
+  "ChooseExportFormat2": "[2] Joplin folder",
+  "StartExportingNotebook": "Start exporting notebook: {0}",
+  "ExportSuccessful": "--> Notebook export successful\nExport folder : '{0}'",
+  "ErrorDuringPageProcessing": "Error during processing of page {0} [{1}]. Page ignored. Error message : {2}",
+  "ErrorDuringSectionProcessing": "Error during processing of section {0} [{1}]. Error message : {2}",
+  "ErrorDuringNotebookProcessingNbTree": "Error during processing of notebook {0} [{1}]. Can't browse notebook tree. Error message : {2}",
+  "EndOfExport": "\nPress a key to exit...",
+  "NotebookNameNotFound": "Notebook '{0}' not found. Is it actually open in OneNote ?",
+  "WelcomeMessage": "Before continue, please verify that :\n\n* OneNote and Word of Office suite are correctly installed\n* OneNote is running and the Notebooks to export are opened\n* PanDoc software is installed (https://pandoc.org/installing.html)\nThis tool and OneNote are started with normal priviledges (NOT as an administrator)\n\nKnown limitations:\n* The free application 'One Note For Windows' is not supported\n* File attachments with certain extensions are not exported, including : wma, wmv, mpg, svg, mp3 (Issue #39)\n* Password protected sections are not exported\n* Hand-writting text is not exported\n\n/!\\ Allways keep a backup of your OneNote notebooks in case you discover later that some data is missing in the export /!\\\n",
+  "PressEnter": "Press Enter to continue...",
+  "ExportFolder": "Exports",
+  "ErrorWhileStartingOnenote": "Error during OneNote execution. Please check that OneNote is running. Try to close and restart OneNote."
+}
