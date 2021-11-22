@@ -34,9 +34,6 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             => Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.OriginalUserFilePath));
         // TODO : replace .bin by real orignal file extension from "original onenote file"
 
-        protected override string GetImageFilePath(Attachement attachement)
-            => GetAttachmentFilePath(attachement);
-
         protected override string GetAttachmentMdReference(Attachement attachement)
             => $":/{attachement.Id}";
 

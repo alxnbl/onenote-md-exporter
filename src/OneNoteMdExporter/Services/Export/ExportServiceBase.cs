@@ -40,14 +40,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected abstract string GetAttachmentFilePath(Attachement attachement);
 
         /// <summary>
-        /// Return location in the export folder of an image embded in the note
+        /// Get the md reference to the attachment
         /// </summary>
-        /// <param name="page"></param>
-        /// <param name="attachId">Id of the attachment</param>
-        /// <param name="oneNoteFilePath">Original filepath of the file in OneNote</param>
+        /// <param name="attachement"></param>
         /// <returns></returns>
-        protected abstract string GetImageFilePath(Attachement attachement);
-
         protected abstract string GetAttachmentMdReference(Attachement attachement);
 
         protected abstract string GetResourceFolderPath(Node node);
@@ -300,7 +296,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // In case of dupplicate files, suffix attachment file name
             foreach (var attach in page.ImageAttachements)
             {
-                File.Copy(attach.ActualSourceFilePath, GetImageFilePath(attach));
+                File.Copy(attach.ActualSourceFilePath, GetAttachmentFilePath(attach));
                 File.Delete(attach.ActualSourceFilePath);
             }
 

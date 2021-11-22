@@ -30,16 +30,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 return attachement.OverrideExportFilePath;
         }
 
-        protected override string GetImageFilePath(Attachement attachement)
-            => GetAttachmentFilePath(attachement);
-
         /// <summary>
         /// Get relative path from Image's folder to attachement folder
         /// </summary>
         /// <param name="attachement"></param>
         /// <returns></returns>
         protected override string GetAttachmentMdReference(Attachement attachement)
-            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), GetImageFilePath(attachement)).Replace("\\", "/");
+            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), GetAttachmentFilePath(attachement)).Replace("\\", "/");
 
         public MdExportService(AppSettings appSettings, Application oneNoteApp, ConverterService converterService) : base(appSettings, oneNoteApp, converterService)
         {

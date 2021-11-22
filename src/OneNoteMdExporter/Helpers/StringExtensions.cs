@@ -18,6 +18,6 @@ namespace alxnbl.OneNoteMdExporter.Helpers
         }
 
         public static string RemoveMdReferenceInvalidChars(this string reference)
-            => reference.Replace(" ", "_");
+            => reference.Replace(" ", "_"); // Md reference do not support white spaces
     }
 }
