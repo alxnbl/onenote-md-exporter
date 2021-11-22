@@ -19,8 +19,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetResourceFolderPath(Node node)
             => Path.Combine(GetNoteBookFolderRoot(node), "resources");
 
-        protected override string GetPageFilePath(Page page, string extention)
-            => Path.Combine(GetNoteBookFolderRoot(page), page.Id + "." + extention);
+        protected override string GetPageMdFilePath(Page page)
+            => Path.Combine(GetNoteBookFolderRoot(page), page.Id + ".md");
 
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             InsertJoplinNodeMetadataFooter(page, ref pageMd);
 
             // Write joplin md file of the page
-            File.WriteAllText(GetPageFilePath(page, "md"), pageMd);
+            File.WriteAllText(GetPageMdFilePath(page), pageMd);
         }
 
         protected override void FinalizeExportPageAttachemnts(Page page, Attachement attachment)

@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <!-- DotNet3 do not include .deps and runtime file for project reference : https://github.com/dotnet/sdk/issues/1675  -->
-    <ProjectReference Include="..\alxnbl.OneNoteMdExporter\OneNoteMdExporter.csproj" />
+    <ProjectReference Include="..\OneNoteMdExporter\OneNoteMdExporter.csproj" />
   </ItemGroup>
 
 </Project>

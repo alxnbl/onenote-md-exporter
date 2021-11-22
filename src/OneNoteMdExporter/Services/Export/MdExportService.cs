@@ -14,15 +14,20 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetResourceFolderPath(Node node)
             => Path.Combine(node.GetNotebook().ExportFolder, "_resources");
 
-        protected override string GetPageFilePath(Page page, string extention)
-            => Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath() + "." + extention);
+        protected override string GetPageMdFilePath(Page page)
+        {
+            if (page.OverridePageFilePath == null)
+                return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath() + ".md");
+            else
+                return page.OverridePageFilePath;
+        }
 
         protected override string GetAttachmentFilePath(Attachement attachement)
         {
-            if (attachement.OverrideExportFilePath != null)
-                return attachement.OverrideExportFilePath;
+            if (attachement.OverrideExportFilePath == null)
+                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), Path.GetFileName(attachement.OriginalUserFilePath).RemoveMdReferenceInvalidChars());         
             else
-                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), Path.GetFileName(attachement.OriginalUserFilePath).RemoveMdReferenceInvalidChars());
+                return attachement.OverrideExportFilePath;
         }
 
         protected override string GetImageFilePath(Attachement attachement)
@@ -34,7 +39,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attachement"></param>
         /// <returns></returns>
         protected override string GetAttachmentMdReference(Attachement attachement)
-            => Path.GetRelativePath(Path.GetDirectoryName(GetPageFilePath(attachement.ParentPage, "md")), GetImageFilePath(attachement)).Replace("\\", "/");
+            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), GetImageFilePath(attachement)).Replace("\\", "/");
 
         public MdExportService(AppSettings appSettings, Application oneNoteApp, ConverterService converterService) : base(appSettings, oneNoteApp, converterService)
         {
@@ -72,7 +77,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected override void WritePageMdFile(Page page, string pageMd)
         {
-            File.WriteAllText(GetPageFilePath(page, "md"), pageMd);
+            File.WriteAllText(GetPageMdFilePath(page), pageMd);
         }
 
         protected override void FinalizeExportPageAttachemnts(Page page, Attachement attachment)
@@ -82,7 +87,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected override void PreparePageExport(Page page)
         {
-            var pageDirectory = Path.GetDirectoryName(GetPageFilePath(page, "md"));
+            var pageDirectory = Path.GetDirectoryName(GetPageMdFilePath(page));
 
             if (!Directory.Exists(pageDirectory))
                 Directory.CreateDirectory(pageDirectory);

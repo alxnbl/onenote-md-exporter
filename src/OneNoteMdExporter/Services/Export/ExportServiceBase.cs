@@ -4,13 +4,10 @@ using alxnbl.OneNoteMdExporter.Models;
 using Microsoft.Office.Interop.OneNote;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -55,7 +52,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected abstract string GetResourceFolderPath(Node node);
 
-        protected abstract string GetPageFilePath(Page page, string extention);
+        protected abstract string GetPageMdFilePath(Page page);
 
 
         public void ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
@@ -113,9 +110,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <returns></returns>
         protected void ExportPage(Page page)
         {
-            var docxFilePath = GetPageFilePath(page, "docx");
-            var mdFilePath = GetPageFilePath(page, "md");
-            var resourceFolderPath = GetResourceFolderPath(page);
+            // Suffix page title
+            EnsurePageUniquenessPerSection(page);
+
+            var docxFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "docx");
 
             try
             {
@@ -329,12 +327,44 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 var candidateFilePath = cmpt == 0 ? attachmentFilePath :
                     $"{Path.ChangeExtension(attachmentFilePath, null)}-{cmpt}{Path.GetExtension(attachmentFilePath)}";
 
-                var attachmentFileNameAlreadyUsed = page.GetNotebook().GetAllAttachments().Any(a => PathExtensions.PathEquals(GetAttachmentFilePath(a), candidateFilePath));
+                var attachmentFileNameAlreadyUsed = page.GetNotebook().GetAllAttachments().Any(a => a != attach && PathExtensions.PathEquals(GetAttachmentFilePath(a), candidateFilePath));
                 
                 if (!attachmentFileNameAlreadyUsed)
                 {
                     if (cmpt > 0)
                         attach.OverrideExportFilePath = candidateFilePath;
+
+                    notUseFileNameFound = true;
+                }
+                else
+                    cmpt++;
+            }
+
+        }
+
+
+        /// <summary>
+        /// Suffix the page file name if it conflicits with an other page previously attached to the notebook export
+        /// </summary>
+        /// <param name="page">The parent Page</param>
+        /// <param name="attach">The attachment</param>
+        private void EnsurePageUniquenessPerSection(Page page)
+        {
+            var notUseFileNameFound = false;
+            var cmpt = 0;
+            var pageFilePath = GetPageMdFilePath(page);
+
+            while (!notUseFileNameFound)
+            {
+                var candidateFilePath = cmpt == 0 ? pageFilePath :
+                    $"{Path.ChangeExtension(pageFilePath, null)}-{cmpt}.md";
+
+                var attachmentFileNameAlreadyUsed = page.Parent.Childs.OfType<Page>().Any(p => p != page && PathExtensions.PathEquals(GetPageMdFilePath(p), candidateFilePath));
+
+                if (!attachmentFileNameAlreadyUsed)
+                {
+                    if (cmpt > 0)
+                        page.OverridePageFilePath = candidateFilePath;
 
                     notUseFileNameFound = true;
                 }

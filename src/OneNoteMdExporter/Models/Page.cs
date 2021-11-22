@@ -33,6 +33,11 @@ namespace alxnbl.OneNoteMdExporter.Models
         {
         }
 
+        /// <summary>
+        /// Override page md file path in case of multiple page with the same name
+        /// </summary>
+        public string OverridePageFilePath { get; set; }
+
         public string GetPageFileRelativePath()
         {
             return Path.Combine(Parent.GetPath(), TitleWithNoInvalidChars.AddPrefixLevel(PageLevel));
