@@ -62,7 +62,7 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
 | --- | --- | --- |
 | Hierarchy of sections | ✅ Folder hierarchy | ✅ Notbook hierarchy |
 | Page ordering inside a section | 🔴 Lost | ✅ |
-| Page hierarchy (level) | 🔴 Lost | ✅ |
+| Page hierarchy (level) | ✅ | ✅ |
 | Attachments  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3)  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3) |
 | Image  | ✅ | ✅ |
 | Table  | ✅ | ✅ |
