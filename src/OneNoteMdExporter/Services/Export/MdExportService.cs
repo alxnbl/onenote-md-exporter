@@ -17,7 +17,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetPageMdFilePath(Page page)
         {
             if (page.OverridePageFilePath == null)
-                return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath() + ".md");
+                return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath().Left(50) + ".md");
             else
                 return page.OverridePageFilePath;
         }
@@ -25,7 +25,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetAttachmentFilePath(Attachement attachement)
         {
             if (attachement.OverrideExportFilePath == null)
-                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), Path.GetFileName(attachement.OriginalUserFilePath).RemoveMdReferenceInvalidChars());         
+                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.FriendlyFileName.RemoveMdReferenceInvalidChars());         
             else
                 return attachement.OverrideExportFilePath;
         }

@@ -19,5 +19,6 @@
   "WelcomeMessage": "Avant de continuer, merci de vérifier que :\n\n* OneNote et Word de la suite Office sont correctement installés\n* OneNote est lancé et les Blocnotes que vous souhaitez exporter sont ouverts\n* Le logiciel PanDoc est installé (https://pandoc.org/installing.html)\n* Cet utilitaire et OneNote sont lancés avec des privilèges normaux (PAS en tant qu'administrateur)\n\nLimitations connues de cet utilitaire :\n* L'application gratuite 'OneNote For Windows' n'est pas supportée\n* Les fichiers attachés avec certaines extensions telle que wma, wmv, mpg, svg, mp3 ne sont pas exportés (limitation de OneNote)\n* Les sections protégées par des mots de passe ne sont pas exportées\n* Le texte écrit avec un stylet n'est pas exporté\n\n/!\\ Conservez toujours une sauvegarde de vos bloc-notes OneNote au cas où vous découvririez ultérieurement que certaines données manquent dans l'export /!\\\n",
   "PressEnter": "Press Enter to continue...",
   "ExportFolder": "Exports",
-  "ErrorWhileStartingOnenote": "Erreur durant l'exécution de OneNote. Merci de vérifiez que OneNote est bien en cours d'exécution. Vous pouvez aussi essayer de fermer puis relancer OneNote."
+  "ErrorWhileStartingOnenote": "Erreur durant l'exécution de OneNote. Merci de vérifiez que OneNote est bien en cours d'exécution. Vous pouvez aussi essayer de fermer puis relancer OneNote.",
+  "ErrorDuringOneNoteExport": "OneNote a retourné une erreur pendant l'export de la page : '{0}'"
 }

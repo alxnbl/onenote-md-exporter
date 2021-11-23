@@ -73,21 +73,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         public abstract void ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "");
 
-        protected void CleanUpFolder(Notebook notebook)
+        private void CleanUpFolder(Notebook notebook)
         {
             // Cleanup Notebook export folder
-            var nbDir = GetNotebookFolderPath(notebook);
-            if (Directory.Exists(nbDir))
-                Directory.Delete(nbDir, true);
-            Directory.CreateDirectory(nbDir);
+            DirectoryHelper.ClearFolder(GetNotebookFolderPath(notebook));
 
-            var tmpFolder = GetTmpFolder(notebook);
-
-            // Cleanup Notebook folder
-
-            if (Directory.Exists(tmpFolder))
-                Directory.Delete(tmpFolder, true);
-            Directory.CreateDirectory(tmpFolder);
+            // Cleanup temp folder
+            DirectoryHelper.ClearFolder(GetTmpFolder(notebook));
         }
 
         protected abstract void PreparePageExport(Page page);
@@ -109,49 +101,52 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // Suffix page title
             EnsurePageUniquenessPerSection(page);
 
-            var docxFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "docx");
+            var docxFileTmpFile = Path.Combine(GetTmpFolder(page), page.Id + ".docx");
 
             try
             {
-                if (File.Exists(docxFilePath))
-                    File.Delete(docxFilePath);
+                if (File.Exists(docxFileTmpFile))
+                    File.Delete(docxFileTmpFile);
 
                 PreparePageExport(page);
 
                 Log.Debug($"{page.OneNoteId}: start OneNote docx publish");
 
                 // Request OneNote to export the page into a DocX file
-
-                try
-                {
-                    _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFilePath), PublishFormat.pfWord);
-                }
-                catch (COMException ex)
-                {
-                    if(ex.Message.Contains("0x800706BE"))
-                        throw new Exception(Localizer.GetString("ErrorWhileStartingOnenote"), ex);
-                }
+                _oneNoteApp.Publish(page.OneNoteId, Path.GetFullPath(docxFileTmpFile), PublishFormat.pfWord);
 
                 Log.Debug($"{page.OneNoteId}: success");
 
 
                 // Convert docx file into Md using PanDoc
-                var pageMd = _convertServer.ConvertDocxToMd(page, docxFilePath, GetTmpFolder(page));
+                var pageMd = _convertServer.ConvertDocxToMd(page, docxFileTmpFile, GetTmpFolder(page));
 
-                if (!_appSettings.Debug)
+                if (_appSettings.Debug)
                 {
-                    File.Delete(docxFilePath);
+                    // If debug mode enabled, copy the page docx file next to the page md file
+                    var docxFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "docx");
+                    File.Copy(docxFileTmpFile, docxFilePath);
                 }
+
+                File.Delete(docxFileTmpFile);
 
                 // Copy images extracted from DocX to Export folder and add them in the list of attachments of the page
                 try
                 {
                     ExtractImagesToResourceFolder(page, ref pageMd, _appSettings.PostProcessingMdImgRef);
                 }
+                catch (COMException ex)
+                {
+                    if (ex.Message.Contains("0x800706BE"))
+                    {
+                        LogError(page, ex, Localizer.GetString("ErrorWhileStartingOnenote"));
+                    }
+                    else
+                        LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringOneNoteExport"), ex.Message));
+                }
                 catch (Exception ex)
                 {
-                    Log.Warning($"Page '{page.GetPageFileRelativePath()}': {Localizer.GetString("ErrorImageExtract")}");
-                    Log.Debug(ex, ex.Message);
+                    LogError(page, ex, Localizer.GetString("ErrorImageExtract"));
                 }
 
                 // Export all file attachments and get updated page markdown including md reference to attachments
@@ -164,9 +159,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
             catch (Exception ex)
             {
-                Log.Error(ex, Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message);
-                Log.Debug(ex, ex.ToString());
+                LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
             }
+        }
+
+        private void LogError(Page p, Exception ex, string message)
+        {
+            Log.Warning($"Page '{p.GetPageFileRelativePath()}': {message}");
+            Log.Debug(ex, ex.Message);
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(>\\\\>)", delegate (Match match)
             {
                 var refFileName = match.Groups["fileName"]?.Value ?? "";
-                var attachOriginalFileName = Path.GetFileName(attach.OriginalUserFilePath);
+                var attachOriginalFileName = attach.OneNotePreferredFileName ;
                 var attachMdRef = getAttachMdReferenceMethod(attach);
 
                 if (refFileName.Equals(attachOriginalFileName))

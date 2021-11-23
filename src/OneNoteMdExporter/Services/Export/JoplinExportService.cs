@@ -3,12 +3,10 @@ using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
 using Microsoft.Office.Interop.OneNote;
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -31,8 +29,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="oneNoteFilePath">Original filepath of the file in OneNote</param>
         /// <returns></returns>
         protected override string GetAttachmentFilePath(Attachement attachement)
-            => Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.OriginalUserFilePath));
-        // TODO : replace .bin by real orignal file extension from "original onenote file"
+            => Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.FriendlyFileName));
 
         protected override string GetAttachmentMdReference(Attachement attachement)
             => $":/{attachement.Id}";

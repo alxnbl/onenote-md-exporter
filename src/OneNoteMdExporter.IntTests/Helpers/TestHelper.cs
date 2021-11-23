@@ -14,7 +14,7 @@ namespace alxnbl.OneNoteMdExporter.IntTests.Helpers
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = "alxnbl.OneNoteMdExporter.exe",
+                FileName = "OneNoteMdExporter.exe",
                 Arguments = args,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true

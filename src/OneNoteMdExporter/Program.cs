@@ -113,7 +113,7 @@ namespace alxnbl.OneNoteMdExporter
             if (!opts.NoInput)
             {
                 if (notebookToProcess.Count == 1)
-                    Process.Start("explorer.exe", $"/select, {Path.GetFullPath(notebookToProcess.First().ExportFolder)}");
+                    Process.Start("explorer.exe", Path.GetFullPath(notebookToProcess.First().ExportFolder) + Path.DirectorySeparatorChar);
 
                 Log.Information(Localizer.GetString("EndOfExport"));
                 Console.ReadLine();

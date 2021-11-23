@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace alxnbl.OneNoteMdExporter.Helpers
 {
@@ -17,7 +15,16 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             return prefix + (!string.IsNullOrEmpty(prefix) ? " " : "") + label;
         }
 
+        /// <summary>
+        /// Remove space character that is not supported for md references
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <returns></returns>
         public static string RemoveMdReferenceInvalidChars(this string reference)
-            => reference.Replace(" ", "_"); // Md reference do not support white spaces
+            => reference?.Replace(" ", "_");
+
+        public static string Left(this String input, int length)
+         => (input.Length < length) ? input : input.Substring(0, length);
+        
     }
 }

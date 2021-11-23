@@ -1,11 +1,9 @@
-﻿using alxnbl.OneNoteMdExporter.Helpers;
-using alxnbl.OneNoteMdExporter.Infrastructure;
+﻿using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
 using Serilog;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.Services

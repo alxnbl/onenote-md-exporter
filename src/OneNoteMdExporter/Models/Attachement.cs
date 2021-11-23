@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace alxnbl.OneNoteMdExporter.Models
 {
@@ -8,10 +9,13 @@ namespace alxnbl.OneNoteMdExporter.Models
 
         public AttachementType Type {get; set;}
 
+        public string FriendlyFileName { 
+            get { return OneNotePreferredFileName ?? Path.GetFileName(OriginalUserFilePath); }
+        }
         /// <summary>
         /// The Friendly FileNama returned by OneNote
         /// </summary>
-        public string FriendlyFileName { get; set; }
+        public string OneNotePreferredFileName { get; set; }
 
         /// <summary>
         /// Use as unique identifier of image attachments extracted from the docx file

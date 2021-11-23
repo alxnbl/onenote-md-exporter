@@ -181,7 +181,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                 {
                     ActualSourceFilePath = xmlInsertedFile.Attribute("pathCache")?.Value,
                     OriginalUserFilePath = xmlInsertedFile.Attribute("pathSource")?.Value,
-                    FriendlyFileName = xmlInsertedFile.Attribute("preferredName")?.Value,
+                    OneNotePreferredFileName = xmlInsertedFile.Attribute("preferredName")?.Value,
                     Type = AttachementType.File
                 };
 

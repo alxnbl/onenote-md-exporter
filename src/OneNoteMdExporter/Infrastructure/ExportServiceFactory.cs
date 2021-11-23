@@ -3,10 +3,6 @@ using alxnbl.OneNoteMdExporter.Services;
 using alxnbl.OneNoteMdExporter.Services.Export;
 using Microsoft.Office.Interop.OneNote;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace alxnbl.OneNoteMdExporter.Infrastructure
 {
