@@ -7,8 +7,9 @@
   "NotebookNotFound": "Notebook not found",
   "BadInput": "Please enter a numeric value",
   "ChooseExportFormat": "\nPlease choose export format: ",
-  "ChooseExportFormat1": "[1] Markdown folder tree",
-  "ChooseExportFormat2": "[2] Joplin folder",
+  "ChooseExportFormat1": "[1] Markdown",
+  "ChooseExportFormat2": "[2] Joplin Raw Folder",
+  "ChooseExportFormat3": "[3] Markdown Front Matter",
   "StartExportingNotebook": "Start exporting notebook: {0}",
   "ExportSuccessful": "--> Notebook export successful\nExport folder : '{0}'",
   "ErrorDuringPageProcessing": "Error during processing of page {0} [{1}]. Page ignored. Error message : {2}",
@@ -20,5 +21,5 @@
   "PressEnter": "Press Enter to continue...",
   "ExportFolder": "Exports",
   "ErrorWhileStartingOnenote": "Error during OneNote execution. Please check that OneNote is running. Try to close and restart OneNote.",
-  "ErrorDuringOneNoteExport":  "OneNote has returned an error during page export : '{0}'"
+  "ErrorDuringOneNoteExport": "OneNote has returned an error during page export : '{0}'"
 }

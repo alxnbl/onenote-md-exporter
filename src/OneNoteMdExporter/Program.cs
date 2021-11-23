@@ -147,6 +147,7 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("ChooseExportFormat"));
                 Log.Information(Localizer.GetString("ChooseExportFormat1"));
                 Log.Information(Localizer.GetString("ChooseExportFormat2"));
+                Log.Information(Localizer.GetString("ChooseExportFormat3"));
 
                 optsExportFormat = Console.ReadLine();
 

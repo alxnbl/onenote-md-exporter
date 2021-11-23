@@ -40,7 +40,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         public MdExportService(AppSettings appSettings, Application oneNoteApp, ConverterService converterService) : base(appSettings, oneNoteApp, converterService)
         {
-            _exportFormatCode = "md-directory";
+            _exportFormatCode = "md";
         }
 
         public override void ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
@@ -54,7 +54,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             int cmptSect = 0;
             foreach (Section section in sections)
             {
-                Log.Information($"Start processing section ({++cmptSect}/{sections.Count()}) :  {section.GetPath()}/{section.Title}");
+                Log.Information($"Start processing section ({++cmptSect}/{sections.Count()}) :  {section.GetPath()}\\{section.Title}");
 
                 if (section.IsSectionGroup)
                     throw new InvalidOperationException("Cannot call ExportSection on section group with MdExport");

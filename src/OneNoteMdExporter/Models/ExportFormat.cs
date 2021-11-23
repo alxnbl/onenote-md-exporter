@@ -3,7 +3,8 @@
     public enum ExportFormat
     {
         Undefined = 0,
-        MdFolder = 1,
-        JoplinMdFolder = 2
+        Markdown = 1,
+        JoplinMdFolder = 2,
+        MarkdownFrontMatter = 3
     }
 }

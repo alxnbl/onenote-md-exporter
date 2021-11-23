@@ -12,10 +12,12 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         {
             switch (exportFormat)
             {
-                case ExportFormat.MdFolder:
+                case ExportFormat.Markdown:
                     return new MdExportService(appSettings, oneNoteApp, new ConverterService(appSettings));
                 case ExportFormat.JoplinMdFolder:
                     return new JoplinExportService(appSettings, oneNoteApp, new ConverterService(appSettings));
+                case ExportFormat.MarkdownFrontMatter:
+                    return new MdFrontMatterExportService(appSettings, oneNoteApp, new ConverterService(appSettings));
                 default:
                     throw new NotImplementedException();
             }
