@@ -1,1 +1,3 @@
-pandoc/pandoc-2.13/* linguist-vendored
+src/OneNoteMdExporter/pandoc/* linguist-vendored
+
+
