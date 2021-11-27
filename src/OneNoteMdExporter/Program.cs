@@ -194,29 +194,20 @@ namespace alxnbl.OneNoteMdExporter
             }
 
             var input = Console.ReadLine();
+            var inputInt = input.Split(",").Select(s => Int32.TryParse(s, out var notebookNbr) ? notebookNbr : -1).Where(i => i >= 0).ToList();
 
-            if (!Int32.TryParse(input, out var inputInt))
-            {
-                Log.Information(Localizer.GetString("BadInput"));
-                return new List<Notebook>();
-            }
-
-            if (inputInt == 0)
-            {
+            if (inputInt.Contains(0))
                 return notebooks;
-            }
             else
             {
-                try
-                {
-                    return new List<Notebook> { notebooks.ElementAt(inputInt - 1) };
-                }
-                catch (ArgumentOutOfRangeException)
-                {
+                var notebooksResult = inputInt.Where(i => i <= notebooks.Count).Select(i => notebooks.ElementAt(i - 1)).ToList();
+
+                if (!notebooksResult.Any())
                     Log.Information(Localizer.GetString("NotebookNotFound"));
-                    return new List<Notebook>(); ;
-                }
+
+                return notebooksResult;
             }
+
         }
 
         private static void InitLogger()

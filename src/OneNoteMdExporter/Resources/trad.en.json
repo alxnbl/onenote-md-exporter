@@ -1,6 +1,6 @@
 ﻿{
   "NotebookFounds": "{0} notebook(s) found(s).",
-  "PleaseChooseNotebookToExport": "Please enter the notebooks number to export : ",
+  "PleaseChooseNotebookToExport": "Please enter the notebook number to export, or a coma separated list of value (ex: \"2,3,4\") : ",
   "ExportAllNotebooks": "[0] Export all notebooks",
   "ErrorImageExtract": "Error while extracting images of the page.",
   "ExportNotebookPositionX": "[{0}] {1}",
