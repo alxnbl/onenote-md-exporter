@@ -39,6 +39,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <returns></returns>
         protected abstract string GetAttachmentFilePath(Attachement attachement);
 
+        protected abstract string GetAttachmentFilePathOnPage(Attachement attachement);  //*************tlich*******
         /// <summary>
         /// Get the md reference to the attachment
         /// </summary>
@@ -296,7 +297,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // In case of dupplicate files, suffix attachment file name
             foreach (var attach in page.ImageAttachements)
             {
-                File.Copy(attach.ActualSourceFilePath, GetAttachmentFilePath(attach));
+                File.Copy(attach.ActualSourceFilePath, GetAttachmentFilePathOnPage(attach)); //tlich: copy Images to page/_resources
                 File.Delete(attach.ActualSourceFilePath);
             }
 

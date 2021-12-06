@@ -31,6 +31,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetAttachmentFilePath(Attachement attachement)
             => Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.FriendlyFileName));
 
+        protected override string GetAttachmentFilePathOnPage(Attachement attachement)
+            => Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.FriendlyFileName));
+
+
         protected override string GetAttachmentMdReference(Attachement attachement)
             => $":/{attachement.Id}";
 

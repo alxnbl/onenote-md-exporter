@@ -12,7 +12,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
     public class MdExportService : ExportServiceBase
     {
         protected override string GetResourceFolderPath(Node node)
-            => Path.Combine(node.GetNotebook().ExportFolder, "_resources");
+            => Path.Combine(node.GetNotebook().ExportFolder, "File");
 
         protected override string GetPageMdFilePath(Page page)
         {
@@ -29,6 +29,22 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             else
                 return attachement.OverrideExportFilePath;
         }
+        protected override string GetAttachmentFilePathOnPage(Attachement attachement) ////tlich: creat a new func to svae Images in page Directory
+        {
+            if (attachement.OverrideExportFilePath == null)
+                return Path.Combine(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), "_resources", attachement.FriendlyFileName.RemoveMdReferenceInvalidChars());
+            else
+            {
+                string s1 = attachement.OverrideExportFilePath;
+                string s2 = String.Empty;
+                //先求出最后出现这个字符的下标
+                int index = s1.LastIndexOf('\\');
+                //从下一个索引开始截取
+                s2 = s1.Substring(index + 1);
+                return Path.Combine(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), "_resources", s2);
+                //return attachement.OverrideExportFilePath;
+            }
+        }
 
         /// <summary>
         /// Get relative path from Image's folder to attachement folder
@@ -36,7 +52,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attachement"></param>
         /// <returns></returns>
         protected override string GetAttachmentMdReference(Attachement attachement)
-            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), GetAttachmentFilePath(attachement)).Replace("\\", "/");
+            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), GetAttachmentFilePathOnPage(attachement)).Replace("\\", "/"); //GetAttachmentFilePath->GetAttachmentFilePathOnPage
 
         public MdExportService(AppSettings appSettings, Application oneNoteApp, ConverterService converterService) : base(appSettings, oneNoteApp, converterService)
         {
@@ -86,6 +102,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             var pageDirectory = Path.GetDirectoryName(GetPageMdFilePath(page));
 
+            Directory.CreateDirectory(Path.Combine(pageDirectory, "_resources"));//tlich:creat resources every pageDirectory
             if (!Directory.Exists(pageDirectory))
                 Directory.CreateDirectory(pageDirectory);
         }
