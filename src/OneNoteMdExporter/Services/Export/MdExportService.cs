@@ -6,6 +6,8 @@ using Serilog;
 using System;
 using System.IO;
 using System.Linq;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -90,5 +92,39 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 Directory.CreateDirectory(pageDirectory);
         }
 
+        protected override string FinalizePageMdPostProcessing(Page page, string md)
+        {
+            var res = md;
+
+            if (_appSettings.AddFrontMatterHeader)
+                res = AddFrontMatterHeader(page, md);
+
+            return res;
+        }
+
+        private string AddFrontMatterHeader(Page page, string pageMd)
+        {
+            var headerModel = new FrontMatterHeader
+            {
+                Title = page.Title,
+                Created = page.CreationDate,
+                Updated = page.LastModificationDate
+            };
+
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+            var headerYaml = serializer.Serialize(headerModel);
+
+            return "---\n" + headerYaml + "---\n\n" + pageMd;
+        }
+
+        private class FrontMatterHeader
+        {
+            public string Title { get; set; }
+            public DateTime Updated { get; set; }
+            public DateTime Created { get; set; }
+        }
     }
+
 }

@@ -9,6 +9,8 @@ namespace alxnbl.OneNoteMdExporter.Models
     {
         public int PageLevel { get; set; }
 
+        public Page ParentPage { get; set; }
+
         /// <summary>
         /// Ordering of the page inside the Section
         /// </summary>

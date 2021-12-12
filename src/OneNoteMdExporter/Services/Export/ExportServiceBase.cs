@@ -159,6 +159,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // Apply post processing to Page Md content
                 _convertServer.PageMdPostConvertion(page, ref pageMd);
 
+                // Apply post processing specific to an export format
+                pageMd = FinalizePageMdPostProcessing(page, pageMd);
+
                 WritePageMdFile(page, pageMd);
             }
             catch (Exception ex)
@@ -166,6 +169,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
             }
         }
+
+        protected abstract string FinalizePageMdPostProcessing(Page page, string md);
 
         private void LogError(Page p, Exception ex, string message)
         {

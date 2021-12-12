@@ -95,6 +95,8 @@ namespace alxnbl.OneNoteMdExporter
             if (exportFormat == ExportFormat.Undefined)
                 return;
 
+            UpdateSettingsForm();
+
             var exportService = ExportServiceFactory.GetExportService(exportFormat, appSettings, OneNoteApp);
 
             foreach (Notebook notebook in notebookToProcess)
@@ -117,6 +119,22 @@ namespace alxnbl.OneNoteMdExporter
 
                 Log.Information(Localizer.GetString("EndOfExport"));
                 Console.ReadLine();
+            }
+        }
+
+        private static void UpdateSettingsForm()
+        {
+            Log.Information(Localizer.GetString("DoYouWantToUpdateSettings"));
+
+            var editSettings = Console.ReadLine();
+
+            if(editSettings.Equals(Localizer.GetString("YesAnswer")))
+            {
+                var process = new Process();
+                process.StartInfo.FileName = "notepad.exe";
+                process.StartInfo.Arguments = Path.GetFullPath("appsettings.json");
+                process.Start();
+                process.WaitForExit();
             }
         }
 
@@ -147,7 +165,6 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("ChooseExportFormat"));
                 Log.Information(Localizer.GetString("ChooseExportFormat1"));
                 Log.Information(Localizer.GetString("ChooseExportFormat2"));
-                Log.Information(Localizer.GetString("ChooseExportFormat3"));
 
                 optsExportFormat = Console.ReadLine();
 

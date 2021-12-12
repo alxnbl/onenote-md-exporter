@@ -237,5 +237,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             return; // nothing to prepare
         }
 
+        protected override string FinalizePageMdPostProcessing(Page page, string md)
+        {
+            return md;
+        }
+
     }
 }

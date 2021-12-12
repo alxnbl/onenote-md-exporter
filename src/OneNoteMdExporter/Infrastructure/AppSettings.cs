@@ -4,7 +4,16 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
 {
     public class AppSettings
     {
-        public bool Debug { get; set; } = false; // Enable verbose mode and keep temporary files (.docx)
+        /// <summary>
+        /// Add at the begining of each page a FrontMatter header including Title and other metadata of the page
+        /// </summary>
+        public bool AddFrontMatterHeader { get; set; } = true;
+
+        /// <summary>
+        /// Enable verbose mode and keep temporary files (.docx)
+        /// </summary>
+        public bool Debug { get; set; } = false;
+
 
         public bool PostProcessingMdImgRef { get; set; } = true;
 
