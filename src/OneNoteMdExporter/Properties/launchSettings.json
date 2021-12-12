@@ -2,7 +2,6 @@
   "profiles": {
     "alxnbl.OneNoteMdExporter": {
       "commandName": "Project",
-      "commandLineArgs": "--debug",
       "environmentVariables": {
         "DebugCliParams": "-n TestBloc --no-input -s Attachments -f 1"
       }

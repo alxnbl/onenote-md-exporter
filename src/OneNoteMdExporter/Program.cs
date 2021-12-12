@@ -95,7 +95,8 @@ namespace alxnbl.OneNoteMdExporter
             if (exportFormat == ExportFormat.Undefined)
                 return;
 
-            UpdateSettingsForm();
+            if (!opts.NoInput)
+                UpdateSettingsForm();
 
             var exportService = ExportServiceFactory.GetExportService(exportFormat, appSettings, OneNoteApp);
 

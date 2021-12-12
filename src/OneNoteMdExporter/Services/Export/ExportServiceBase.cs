@@ -11,6 +11,11 @@ using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
+    /// <summary>
+    /// Base class for Export Service. 
+    /// Contains all shared logic between exporter of differents formats.
+    /// Abstract methods needs to be implemented by each exporter
+    /// </summary>
     public abstract class ExportServiceBase : IExportService
     {
         protected readonly AppSettings _appSettings;
@@ -84,12 +89,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected abstract void PreparePageExport(Page page);
 
-        protected string GetTmpFolder(Node node)
-        {
-            return _appSettings.UserTempFolder ?
-                Path.Combine(Path.GetTempPath(), node.GetNotebookPath()) :
-                Path.Combine("tmp", node.GetNotebookPath());
-        }
+        protected static string GetTmpFolder(Node node)
+            => Path.Combine(Path.GetTempPath(), node.GetNotebookPath());
 
         /// <summary>
         /// Export a Page and its attachments
@@ -174,7 +175,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         private void LogError(Page p, Exception ex, string message)
         {
-            Log.Warning($"Page '{p.GetPageFileRelativePath()}': {message}");
+            Log.Warning($"Page '{p.GetPageFileRelativePath(_appSettings.MdMaxFileLength)}': {message}");
             Log.Debug(ex, ex.Message);
         }
 

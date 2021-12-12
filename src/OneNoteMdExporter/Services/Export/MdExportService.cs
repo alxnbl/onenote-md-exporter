@@ -11,6 +11,9 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
+    /// <summary>
+    /// Markdown exporter Service
+    /// </summary>
     public class MdExportService : ExportServiceBase
     {
         protected override string GetResourceFolderPath(Node node)
@@ -18,10 +21,30 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected override string GetPageMdFilePath(Page page)
         {
-            if (page.OverridePageFilePath == null)
-                return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath().Left(_appSettings.MdMaxFileLength) + ".md");
+            if(page.OverridePageFilePath == null)
+            {
+                var hierarchyPrefix = _appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsFolderTree
+                    ? GetPageHierarchyFolderPrefix(page) : "";
+
+                if (hierarchyPrefix == "")
+                    return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath(_appSettings.MdMaxFileLength) + ".md");
+                else 
+                    return Path.Combine(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+            }
             else
+            {
                 return page.OverridePageFilePath;
+            }
+        }
+
+        private string GetPageHierarchyFolderPrefix(Page page)
+        {
+            if (page.ParentPage?.ParentPage != null) // L3
+                return Path.Combine(GetPageMdFilePath(page.ParentPage.ParentPage), GetPageMdFilePath(page.ParentPage));
+            else if (page.ParentPage != null)
+                return GetPageMdFilePath(page.ParentPage);
+            else
+                return "";
         }
 
         protected override string GetAttachmentFilePath(Attachement attachement)

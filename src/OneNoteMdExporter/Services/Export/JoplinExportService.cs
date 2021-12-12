@@ -10,6 +10,9 @@ using System.Text;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
+    /// <summary>
+    /// Joplin exporter service
+    /// </summary>
     public class JoplinExportService : ExportServiceBase
     {
         private string GetNoteBookFolderRoot(Node node)

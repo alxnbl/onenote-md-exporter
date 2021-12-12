@@ -35,7 +35,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             if (!File.Exists(pandocPath))
                 throw new Exception("pandoc.exe not found in /pandoc/ subfolder. Have you unzip the pandoc archive ?");
 
-            var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars + ".md");
+            var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
 
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\"  " +
                             $"--to {_appSettings.PanDocMarkdownFormat} " +
