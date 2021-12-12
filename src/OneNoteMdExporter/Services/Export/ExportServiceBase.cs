@@ -126,6 +126,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     // If debug mode enabled, copy the page docx file next to the page md file
                     var docxFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "docx");
                     File.Copy(docxFileTmpFile, docxFilePath);
+
+                    // And write Pandoc markdown file
+                    var mdPanDocFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "pandoc.md");
+                    File.WriteAllText(mdPanDocFilePath, pageMd);
                 }
 
                 File.Delete(docxFileTmpFile);
@@ -218,7 +222,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="pageMdFileContent"></param>
         /// <param name="attach"></param>
-        private static void InsertPageMdAttachmentReference(ref string pageMdFileContent, Attachement attach, Func<Attachement, string> getAttachMdReferenceMethod)
+        private void InsertPageMdAttachmentReference(ref string pageMdFileContent, Attachement attach, Func<Attachement, string> getAttachMdReferenceMethod)
         {
             var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(>\\\\>)", delegate (Match match)
             {

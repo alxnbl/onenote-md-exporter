@@ -17,7 +17,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetPageMdFilePath(Page page)
         {
             if (page.OverridePageFilePath == null)
-                return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath().Left(50) + ".md");
+                return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath().Left(_appSettings.MdMaxFileLength) + ".md");
             else
                 return page.OverridePageFilePath;
         }

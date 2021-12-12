@@ -38,7 +38,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars + ".md");
 
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\"  " +
-                            $"--to gfm " +
+                            $"--to {_appSettings.PanDocMarkdownFormat} " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
                             $"--wrap=none " + // Mandatory to avoid random quote bloc to be added to markdown
                             $"--extract-media=\"{tmpDir}\"";
@@ -67,12 +67,10 @@ namespace alxnbl.OneNoteMdExporter.Services
 
                     if (_appSettings.Debug)
                         Log.Debug($"Pandoc output: {exeProcess.StandardOutput.ReadToEnd()}");
-                    
+                    else
+                        File.Delete(inputFilePath);
 
                     var mdFileContent = File.ReadAllText(mdFilePath);
-
-                    if (!_appSettings.Debug)
-                        File.Delete(inputFilePath);
 
                     return mdFileContent;
                 }
