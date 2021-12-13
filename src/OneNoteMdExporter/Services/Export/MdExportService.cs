@@ -16,35 +16,41 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
     /// </summary>
     public class MdExportService : ExportServiceBase
     {
-        protected override string GetResourceFolderPath(Node node)
-            => Path.Combine(node.GetNotebook().ExportFolder, "_resources");
+        protected override string GetResourceFolderPath(Page page)
+        {
+            if (_appSettings.ResourceFolderLocation == ResourceFolderLocationEnum.RootFolder)
+                return Path.Combine(page.GetNotebook().ExportFolder, _appSettings.ResourceFolderName);
+            else
+                return Path.Combine(Path.GetDirectoryName(GetPageMdFilePath(page)), _appSettings.ResourceFolderName);
+        } 
 
         protected override string GetPageMdFilePath(Page page)
         {
             if(page.OverridePageFilePath == null)
             {
-                var hierarchyPrefix = _appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsFolderTree
-                    ? GetPageHierarchyFolderPrefix(page) : "";
+                var defaultPath = Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath(_appSettings.MdMaxFileLength) + ".md");
 
-                if (hierarchyPrefix == "")
-                    return Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath(_appSettings.MdMaxFileLength) + ".md");
-                else 
-                    return Path.Combine(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+                if (_appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsFolderTree)
+                {
+                    if (page.ParentPage != null)
+                        return Path.Combine(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+                    else
+                        return defaultPath;
+                }
+                else if (_appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsPageTitlePrefix)
+                {
+                    if (page.ParentPage != null)
+                        return String.Concat(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), " - ", page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+                    else
+                        return defaultPath;
+                }
+                else
+                    return defaultPath;
             }
             else
             {
                 return page.OverridePageFilePath;
             }
-        }
-
-        private string GetPageHierarchyFolderPrefix(Page page)
-        {
-            if (page.ParentPage?.ParentPage != null) // L3
-                return Path.Combine(GetPageMdFilePath(page.ParentPage.ParentPage), GetPageMdFilePath(page.ParentPage));
-            else if (page.ParentPage != null)
-                return GetPageMdFilePath(page.ParentPage);
-            else
-                return "";
         }
 
         protected override string GetAttachmentFilePath(Attachement attachement)

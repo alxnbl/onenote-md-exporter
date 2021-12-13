@@ -17,8 +17,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
     {
         private string GetNoteBookFolderRoot(Node node)
             => Path.Combine(node.GetNotebook().ExportFolder, node.GetNotebook().GetNotebookPath());
-        protected override string GetResourceFolderPath(Node node)
-            => Path.Combine(GetNoteBookFolderRoot(node), "resources");
+        protected override string GetResourceFolderPath(Page node)
+            => Path.Combine(GetNoteBookFolderRoot(node), _appSettings.ResourceFolderName);
 
         protected override string GetPageMdFilePath(Page page)
             => Path.Combine(GetNoteBookFolderRoot(page), page.Id + ".md");

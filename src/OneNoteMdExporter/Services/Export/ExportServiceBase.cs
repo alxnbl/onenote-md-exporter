@@ -51,7 +51,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <returns></returns>
         protected abstract string GetAttachmentMdReference(Attachement attachement);
 
-        protected abstract string GetResourceFolderPath(Node node);
+        protected abstract string GetResourceFolderPath(Page node);
 
         protected abstract string GetPageMdFilePath(Page page);
 
@@ -60,7 +60,6 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             notebook.ExportFolder = $"{Localizer.GetString("ExportFolder")}\\{_exportFormatCode}\\{notebook.GetNotebookPath()}-{DateTime.Now.ToString("yyyyMMdd HH-mm")}";
             CleanUpFolder(notebook);
-            Directory.CreateDirectory(GetResourceFolderPath(notebook));
             
             // Initialize hierarchy of the notebook from OneNote APIs
             try
@@ -122,12 +121,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // Convert docx file into Md using PanDoc
                 var pageMd = _convertServer.ConvertDocxToMd(page, docxFileTmpFile, GetTmpFolder(page));
 
-                if (_appSettings.Debug)
+                if (_appSettings.Debug || _appSettings.KeepOneNoteDocxFiles)
                 {
                     // If debug mode enabled, copy the page docx file next to the page md file
                     var docxFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "docx");
                     File.Copy(docxFileTmpFile, docxFilePath);
-
+                }
+                if(_appSettings.Debug)
+                { 
                     // And write Pandoc markdown file
                     var mdPanDocFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "pandoc.md");
                     File.WriteAllText(mdPanDocFilePath, pageMd);
@@ -138,7 +139,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // Copy images extracted from DocX to Export folder and add them in the list of attachments of the page
                 try
                 {
-                    ExtractImagesToResourceFolder(page, ref pageMd, _appSettings.PostProcessingMdImgRef);
+                    ExtractImagesToResourceFolder(page, ref pageMd);
                 }
                 catch (COMException ex)
                 {
@@ -202,6 +203,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                     var exportFilePath = GetAttachmentFilePath(attach);
 
+                    Directory.CreateDirectory(Path.GetDirectoryName(exportFilePath));
+                    
                     // Copy attachment file into export folder
                     File.Copy(attach.ActualSourceFilePath, exportFilePath);
                     //File.SetAttributes(exportFilePath, FileAttributes.Normal); // Prevent exception during deletation of export directory
@@ -258,9 +261,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="page">Section page</param>
         /// <param name="mdFileContent">Contennt of the MD file</param>
         /// <param name="resourceFolderPath">The path to the notebook folder where store attachments</param>
-        /// <param name="postProcessingMdImgRef">If false, markdown reference to image will not be inserted</param>
-        /// <param name="getImgMdReferenceMethod">The method that returns the md reference of an image attachment</param>
-        public void ExtractImagesToResourceFolder(Page page, ref string mdFileContent, bool postProcessingMdImgRef)
+        public void ExtractImagesToResourceFolder(Page page, ref string mdFileContent)
         {
             // Replace <IMG> tags by markdown references
             var pageTxtModified = Regex.Replace(mdFileContent, "<img [^>]+/>", delegate (Match match)
@@ -297,8 +298,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 var attachRef = GetAttachmentMdReference(imgAttach);
                 var refLabel = Path.GetFileNameWithoutExtension(imgAttach.ActualSourceFilePath);
-
                 return $"![{refLabel}]({attachRef})";
+
             });
 
 
@@ -306,12 +307,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // In case of dupplicate files, suffix attachment file name
             foreach (var attach in page.ImageAttachements)
             {
-                File.Copy(attach.ActualSourceFilePath, GetAttachmentFilePath(attach));
+                var attachFilePath = GetAttachmentFilePath(attach);
+                Directory.CreateDirectory(Path.GetDirectoryName(attachFilePath));
+                File.Copy(attach.ActualSourceFilePath, attachFilePath);
                 File.Delete(attach.ActualSourceFilePath);
             }
 
 
-            if (postProcessingMdImgRef)
+            if (_appSettings.PostProcessingMdImgRef)
             {
                 mdFileContent = pageTxtModified;
             }
