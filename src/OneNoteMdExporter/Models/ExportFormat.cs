@@ -4,7 +4,6 @@
     {
         Undefined = 0,
         Markdown = 1,
-        JoplinMdFolder = 2,
-        MarkdownFrontMatter = 3
+        JoplinMdFolder = 2
     }
 }

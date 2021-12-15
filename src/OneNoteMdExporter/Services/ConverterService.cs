@@ -35,10 +35,10 @@ namespace alxnbl.OneNoteMdExporter.Services
             if (!File.Exists(pandocPath))
                 throw new Exception("pandoc.exe not found in /pandoc/ subfolder. Have you unzip the pandoc archive ?");
 
-            var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars + ".md");
+            var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
 
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\"  " +
-                            $"--to gfm " +
+                            $"--to {_appSettings.PanDocMarkdownFormat} " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
                             $"--wrap=none " + // Mandatory to avoid random quote bloc to be added to markdown
                             $"--extract-media=\"{tmpDir}\"";
@@ -67,12 +67,10 @@ namespace alxnbl.OneNoteMdExporter.Services
 
                     if (_appSettings.Debug)
                         Log.Debug($"Pandoc output: {exeProcess.StandardOutput.ReadToEnd()}");
-                    
+                    else
+                        File.Delete(inputFilePath);
 
                     var mdFileContent = File.ReadAllText(mdFilePath);
-
-                    if (!_appSettings.Debug)
-                        File.Delete(inputFilePath);
 
                     return mdFileContent;
                 }

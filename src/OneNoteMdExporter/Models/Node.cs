@@ -41,12 +41,12 @@ namespace alxnbl.OneNoteMdExporter.Models
             else
                 return new List<Node> { this };
         }
-        public string GetPath()
+        public string GetPath(int pageTitleMaxLength)
         {
             if (Parent == null)
-                return Title.RemoveInvalidFileNameChars();
+                return Title.RemoveInvalidFileNameChars().Left(pageTitleMaxLength);
             else
-                return Path.Combine(Parent.GetPath(), Title.RemoveInvalidFileNameChars());
+                return Path.Combine(Parent.GetPath(pageTitleMaxLength), Title.RemoveInvalidFileNameChars().Left(pageTitleMaxLength));
         }
 
         public int GetLevel()

@@ -9,6 +9,8 @@ namespace alxnbl.OneNoteMdExporter.Models
     {
         public int PageLevel { get; set; }
 
+        public Page ParentPage { get; set; }
+
         /// <summary>
         /// Ordering of the page inside the Section
         /// </summary>
@@ -21,7 +23,8 @@ namespace alxnbl.OneNoteMdExporter.Models
                 return level + (level.Length > 0 ? " " : "") + Title;
             } 
         }
-        public string TitleWithNoInvalidChars { get => Title.RemoveInvalidFileNameChars(); }
+        public string TitleWithNoInvalidChars(int maxLength) 
+            => Title.RemoveInvalidFileNameChars().Left(maxLength);
 
         public IList<Attachement> Attachements { get; set; } = new List<Attachement>();
         public IList<Attachement> ImageAttachements { get => Attachements.Where(a => a.Type == AttachementType.Image).ToList(); }
@@ -38,14 +41,9 @@ namespace alxnbl.OneNoteMdExporter.Models
         /// </summary>
         public string OverridePageFilePath { get; set; }
 
-        public string GetPageFileRelativePath()
+        public string GetPageFileRelativePath(int pageTitleMaxLength)
         {
-            return Path.Combine(Parent.GetPath(), TitleWithNoInvalidChars.AddPrefixLevel(PageLevel));
-        }
-
-        public string GetPageFolderRelativePath()
-        {
-            return Parent.GetPath();
+            return Path.Combine(Parent.GetPath(pageTitleMaxLength), TitleWithNoInvalidChars(pageTitleMaxLength));
         }
     }
 }

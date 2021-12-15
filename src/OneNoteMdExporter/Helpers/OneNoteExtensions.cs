@@ -143,11 +143,28 @@ namespace alxnbl.OneNoteMdExporter.Helpers
 
             var childPages = xmlPages.Select(xmlP => xmlP.GetPage(section)).ToList();
 
+            Page pageL1Cursor = null;
+            Page pageL2Cursor = null;
+
             int position = 0;
-            foreach (var page in childPages)
+            foreach (Page page in childPages)
             {
                 position++;
                 page.PageSectionOrder = position;
+
+                if (page.PageLevel == 1)
+                {
+                    pageL1Cursor = page;
+                }
+                else if (page.PageLevel == 2)
+                {
+                    pageL2Cursor = page;
+                    page.ParentPage = pageL1Cursor;
+                }
+                else if (page.PageLevel == 3)
+                {
+                    page.ParentPage = pageL2Cursor ?? pageL1Cursor; // If page level 3 under a page level 1
+                }
 
                 oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piAll);
 

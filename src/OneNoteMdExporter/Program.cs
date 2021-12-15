@@ -95,6 +95,9 @@ namespace alxnbl.OneNoteMdExporter
             if (exportFormat == ExportFormat.Undefined)
                 return;
 
+            if (!opts.NoInput)
+                UpdateSettingsForm();
+
             var exportService = ExportServiceFactory.GetExportService(exportFormat, appSettings, OneNoteApp);
 
             foreach (Notebook notebook in notebookToProcess)
@@ -117,6 +120,22 @@ namespace alxnbl.OneNoteMdExporter
 
                 Log.Information(Localizer.GetString("EndOfExport"));
                 Console.ReadLine();
+            }
+        }
+
+        private static void UpdateSettingsForm()
+        {
+            Log.Information(Localizer.GetString("DoYouWantToUpdateSettings"));
+
+            var editSettings = Console.ReadLine();
+
+            if(editSettings.Equals(Localizer.GetString("YesAnswer")))
+            {
+                var process = new Process();
+                process.StartInfo.FileName = "notepad.exe";
+                process.StartInfo.Arguments = Path.GetFullPath("appsettings.json");
+                process.Start();
+                process.WaitForExit();
             }
         }
 
@@ -147,7 +166,6 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("ChooseExportFormat"));
                 Log.Information(Localizer.GetString("ChooseExportFormat1"));
                 Log.Information(Localizer.GetString("ChooseExportFormat2"));
-                Log.Information(Localizer.GetString("ChooseExportFormat3"));
 
                 optsExportFormat = Console.ReadLine();
 
@@ -194,29 +212,20 @@ namespace alxnbl.OneNoteMdExporter
             }
 
             var input = Console.ReadLine();
+            var inputInt = input.Split(",").Select(s => Int32.TryParse(s, out var notebookNbr) ? notebookNbr : -1).Where(i => i >= 0).ToList();
 
-            if (!Int32.TryParse(input, out var inputInt))
-            {
-                Log.Information(Localizer.GetString("BadInput"));
-                return new List<Notebook>();
-            }
-
-            if (inputInt == 0)
-            {
+            if (inputInt.Contains(0))
                 return notebooks;
-            }
             else
             {
-                try
-                {
-                    return new List<Notebook> { notebooks.ElementAt(inputInt - 1) };
-                }
-                catch (ArgumentOutOfRangeException)
-                {
+                var notebooksResult = inputInt.Where(i => i <= notebooks.Count).Select(i => notebooks.ElementAt(i - 1)).ToList();
+
+                if (!notebooksResult.Any())
                     Log.Information(Localizer.GetString("NotebookNotFound"));
-                    return new List<Notebook>(); ;
-                }
+
+                return notebooksResult;
             }
+
         }
 
         private static void InitLogger()
