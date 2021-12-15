@@ -3,6 +3,7 @@ using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
 using Microsoft.Office.Interop.OneNote;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // Get all sections and section groups, or the one specified in parameter if any
             var sections = notebook.GetSections(true).Where(s => string.IsNullOrEmpty(sectionNameFilter) || s.Title == sectionNameFilter).ToList();
 
-            Log.Information($"--> Found {sections.Count} sections and sections groups\n");
+            Log.Information(String.Format(Localizer.GetString("FoundXSectionsAndSecGrp"), sections.Count));
 
             // Create the joplin root mdfile of the notebook
             WriteSectionNodeMdFile(notebook);
@@ -76,7 +77,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             foreach (Section section in sections)
             {
                 cmpt++;
-                Log.Information($"Start processing section ({cmpt}/{sections.Count()}) :  {section.GetPath()}\\{section.Title}");
+                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({cmpt}/{sections.Count()}) :  {section.GetPath(_appSettings.MdMaxFileLength)}\\{section.Title}");
 
                 WriteSectionNodeMdFile(section);
 
@@ -114,7 +115,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             foreach (Page page in pages)
             {
-                Log.Information($"   Page {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
+                Log.Information($"   {Localizer.GetString("Page")} {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
 
                 ExportPage(page);
             }

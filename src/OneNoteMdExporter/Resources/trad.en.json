@@ -22,5 +22,9 @@
   "ErrorWhileStartingOnenote": "Error during OneNote execution. Please check that OneNote is running. Try to close and restart OneNote.",
   "ErrorDuringOneNoteExport": "OneNote has returned an error during page export : '{0}'",
   "DoYouWantToUpdateSettings": "Open advance settings editor ?\n[yes] or [Enter] to continue with current settings",
-  "YesAnswer": "yes"
+  "YesAnswer": "yes",
+  "FoundXSections": "--> Found {0} sections\n",
+  "FoundXSectionsAndSecGrp": "--> Found {0} sections and sections groups\n",
+  "StartProcessingSectionX": "Start processing section",
+  "Page": "Page"
 }

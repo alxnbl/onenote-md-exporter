@@ -43,12 +43,7 @@ namespace alxnbl.OneNoteMdExporter.Models
 
         public string GetPageFileRelativePath(int pageTitleMaxLength)
         {
-            return Path.Combine(Parent.GetPath(), TitleWithNoInvalidChars(pageTitleMaxLength).AddPrefixLevel(PageLevel));
-        }
-
-        public string GetPageFolderRelativePath()
-        {
-            return Parent.GetPath();
+            return Path.Combine(Parent.GetPath(pageTitleMaxLength), TitleWithNoInvalidChars(pageTitleMaxLength));
         }
     }
 }

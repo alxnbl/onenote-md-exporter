@@ -21,5 +21,9 @@
   "ExportFolder": "Exports",
   "ErrorWhileStartingOnenote": "Erreur durant l'exécution de OneNote. Merci de vérifiez que OneNote est bien en cours d'exécution. Vous pouvez aussi essayer de fermer puis relancer OneNote.",
   "DoYouWantToUpdateSettings": "Ouvrir les paramètres avancés d'export ?\n[oui] ou [Entrée] pour continuer avec les paramètres actuels",
-  "YesAnswer": "oui"
+  "YesAnswer": "oui",
+  "FoundXSections": "--> {0} sections trouvées\n",
+  "FoundXSectionsAndSecGrp": "--> {0} sections et groupes de section trouvés\n",
+  "StartProcessingSectionX": "Début du traitement de la section",
+  "Page": "Page"
 }

@@ -16,7 +16,7 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         public bool AddFrontMatterHeader { get; set; } = true;
 
         /// <summary>
-        /// Maximum file size of md file. Reduce this value to avoid error of max file system file path
+        /// Length limit of Section and page name used in file and folder name. Reduce this value to avoid error of max file system file path
         /// </summary>
         public int MdMaxFileLength { get; set; } = 50;
 
@@ -28,6 +28,12 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// Apply to : Markdown Format
         /// </summary>
         public PageHierarchyEnum ProcessingOfPageHierarchy { get; set; } = PageHierarchyEnum.HiearchyAsFolderTree;
+
+        /// <summary>
+        /// For MdExport with ProcessingOfPageHierarchy=HiearchyAsPageTitlePrefix, the separator to use to prefix md page file name
+        /// Ex: "_" value for "ParentPage_ChildPage.md"
+        /// </summary>
+        public string PageHierarchyFileNamePrefixSeparator { get; set; } = "_";
 
         /// <summary>
         /// Copy DocX export of pages along md files

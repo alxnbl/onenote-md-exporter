@@ -1,25 +1,27 @@
 **OneNote Md Exporter** is a console application running on Windows that exports your OneNote notebooks in different markdown formats.
 
 This tool is usefull to :
-* migrate from OneNote to an other note management app based on markdown file formats
+* evaluate or migrate to an alternative Knowledge Management Software like Joplin or other software based on Markdown format
 * backup your OneNote Notebooks in an interoperable and open file format
   
 # Requirements
 
-The tool requires OneNote and Word from the Microsoft Office suite. 
-[OneNote for Windows 10](https://www.microsoft.com/en-us/p/onenote-for-windows-10/9wzdncrfhvjl) is not supported.
+- Windows 10
+- OneNote and Word 2016 or +
+  - OneNote for Windows (from the Windows store) is not supported.
 
 # Getting started
 
-1. Download the last release of OneNoteMdExporter from [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
+1. Download the last release of OneNoteMdExporter from the [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
 2. Extract the content of the Zip archive
 3. Launch OneNote and be sure that notebooks to export are opened
 4. Export your notebooks :
    * Start `OneNoteMdExporter.exe`
    * Select the Notebook to export
    * Select the export format
+   * [Optional] Edit advanced settings
    * Go take a coffee ☕
-   * At the end of the export the export folder is displayed
+   * At the end of the export the export folder is open in Windows file explorer
 
 Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
 
@@ -27,29 +29,28 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
 
 ## Markdown
 
-* Pages exported as md files (GitHub Flavor)
-* Sections and section groups exported as a folder hierarchy :
+* Sections and section groups are exported as a folder hierarchy containing pages :
    ```yaml
    Notebook1
    - Section1
      - Section1.1
        - Page1.md
        - Page2.md
-       - Page3.md
    - Section2
    ```
-
-## Markdown + Front Matter
-
-* Similar to Markdown export, but includes a header at the beginning of each md file.
+* Settings
+  * `ProcessingOfPageHierarchy` : page hierarchy as parent folder of md file (ParentPage\Child Page.md ; default value) or as md file prefix (ParentPage_ChildPage.md)
+  * `ResourceFolderLocation` : images and file attachments can be stored in a single folder at the root of the export or in a folder next to each md file
+  * `AddFrontMatterHeader` : add a YAML header containing page metadata at the beginning of each md file
     ```yaml
     ---
-    title: My page title
+    title: Page title
     updated: 2021-11-11 14:55:00Z
     created: 2021-11-11 14:54:43Z
     ---
-    My page content
+    Page content
     ```
+  * `PanDocMarkdownFormat` : choose the markdown syntax to use among [those supported by pandoc](https://pandoc.org/MANUAL.html#general-options). Use *Github flavor* by default.
 
 ## Joplin Raw Directory
 
@@ -61,17 +62,23 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
 | Export format: | Markdown | Joplin |
 | --- | --- | --- |
 | Hierarchy of sections | ✅ Folder hierarchy | ✅ Notbook hierarchy |
-| Page ordering inside a section | 🔴 Lost | ✅ |
-| Page hierarchy (level) | ✅ | ✅ |
-| Attachments  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3)  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3) |
+| Page ordering inside a section | 🔴 Ordering based on md filename | ✅ |
+| Page hierarchy | ✅ Page prefix or folder prefix | ✅ |
+
+
+___
+___
+
+| All formats : |  |
+| --- | --- |
+| Attachments  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3) |
 | Image  | ✅ | ✅ |
 | Table  | ✅ | ✅ |
-| Table with nested image  | 🟠 Html table, image lost | 🟠 Html table, image lost |
 | Font color and background color  | 🔴 | 🔴 |
 | Drawing | 🟠 Flattened as image | 🟠 Flattened as image |
 | Handwriting  | 🔴 Lost | 🔴 Lost |
 | Text tags (task, star...)  | 🔴 Lost | 🔴 Lost |
-| Password protected sections | 🔴 Lost | 🔴 Lost |
+| Password protected sections | 🔴 Lost unless unlocked during export | 🔴 Lost unless unlocked during export |
 | Notebook internal link | 🔴 onenote:// url | 🔴 onenote:// url |
 
 # Technical characteristics
@@ -95,9 +102,9 @@ OneNote Md Exporter uses PanDoc universal markup converter.
 Pandoc is available at https://github.com/jgm/pandoc
 
 Pandoc is released under the following licence terms, full licence details can be found on the pandoc site.
-```
-© 2006-2021 John MacFarlane (jgm@berkeley.edu). Released under the GPL, version 2 or greater. This software carries no warranty of any kind.
-```
+
+> © 2006-2021 John MacFarlane (jgm@berkeley.edu). Released under the GPL, version 2 or greater. This software carries no warranty of any kind.
+
 
 # Build sources
 
@@ -108,17 +115,10 @@ Pandoc is released under the following licence terms, full licence details can b
 
 # Contribute
 
-Bugs and enhancements can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues.
+Bugs and feature requests can be reported under: https://github.com/alxnbl/onenote-md-exporter/issues.
 
-Contribution are welcome, please open a PR.
+You can contribute by adding an new feature or add translations. See [this page](/doc/contribute.md) for more details.
 
-## Translations
+# Support
 
-You can contribute by adding translation in your language. You just need to :
-* fork the repo
-* copy file `/src/Resources/trad.en.json`, translate it, and save the new file into `trad.<TwoLetterLanguageCode>.json`  (list of language code [here](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes)).
-* send a [pull-request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) 
-
-## Implement a new Export format
-
-[Follow this guide](/doc/add-an-export-format.md).
+I developed this tool on a voluntary basis, but if you like my work you can [buy me a ☕](https://www.buymeacoffee.com/alxnbl).
