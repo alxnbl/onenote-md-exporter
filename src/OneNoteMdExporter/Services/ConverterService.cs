@@ -67,8 +67,8 @@ namespace alxnbl.OneNoteMdExporter.Services
 
                     if (_appSettings.Debug)
                         Log.Debug($"Pandoc output: {exeProcess.StandardOutput.ReadToEnd()}");
-                    else
-                        File.Delete(inputFilePath);
+                    
+                    File.Delete(inputFilePath);
 
                     var mdFileContent = File.ReadAllText(mdFilePath);
 
