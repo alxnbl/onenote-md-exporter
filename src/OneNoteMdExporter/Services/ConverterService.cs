@@ -156,7 +156,7 @@ namespace alxnbl.OneNoteMdExporter.Services
         private string MaxTwoLineBreaksInARow(string pageTxt)
         {
             // Max 2 consecutive linebreaks
-            var pageTxtModified = Regex.Replace(pageTxt, @"((\n[ \t]*\n+)|(\r[ \t]*\r+)|(\r\n[ \t]*\r\n+))", 
+            var pageTxtModified = Regex.Replace(pageTxt, @"((\n[ \t]*\n+)|(\r[ \t]*\r+)|(\r\n[ \t]*(\r\n)+))",
                 Environment.NewLine + Environment.NewLine, RegexOptions.Multiline);
 
             return pageTxtModified;
