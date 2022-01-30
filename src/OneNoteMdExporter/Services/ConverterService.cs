@@ -94,19 +94,23 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// <param name="mdFileContent"></param>
         public void PageMdPostConvertion(Page page, ref string mdFileContent)
         {
-            if (_appSettings.RemoveCarriageReturn)
+            if (_appSettings.DeduplicateLinebreaks)
             {
-                mdFileContent = RemoveCarriageReturn(mdFileContent);
+                mdFileContent = DeduplicateLinebreaks(mdFileContent);
             }
+
+            mdFileContent = RemoveHtmlCommentBlocks(mdFileContent);
+
+            mdFileContent = RemoveUTF8NonBreakingSpace(mdFileContent);
 
             if (_appSettings.PostProcessingRemoveQuotationBlocks)
             {
                 mdFileContent = RemoveQuotationBlocks(mdFileContent);
             }
 
-            if (_appSettings.RemoveConsecutiveLinebreaks)
+            if (_appSettings.MaxTwoLineBreaksInARow)
             {
-                mdFileContent = RemoveConsecutiveLinebreaks(mdFileContent);
+                mdFileContent = MaxTwoLineBreaksInARow(mdFileContent);
             }
 
             if (_appSettings.PostProcessingRemoveOneNoteHeader)
@@ -115,57 +119,61 @@ namespace alxnbl.OneNoteMdExporter.Services
             }
         }
 
-        private string RemoveCarriageReturn(string pageTxt)
-        {
-            // Issue #27
-            // https://stackoverflow.com/questions/2282181/net-regex-dot-character-matches-carriage-return
-            // DotNet regex have weird behavior with \r
-            // Replacing all \r\n into \n to avoid issues with downstream regex
-
-            string regex = @"\r\n";
-            var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
-            {
-                return "\n";
-            });
-
-            return pageTxtModified;
-        }
-
         private string RemoveOneNoteHeader(string pageTxt)
         {
-            var pageTxtModified = pageTxt.Replace("\r", "");
-
-            pageTxtModified = Regex.Replace(pageTxtModified, @"^.+\n\n.+\n\n\d{2}:\d{2}\s+", delegate (Match match)
-            {
-                return "";
-            });
+            var pageTxtModified = Regex.Replace(pageTxt, @"^.+(\n|\r|\r\n){1,2}.+(\n|\r|\r\n){1,2}\d{2}:\d{2}\s+", "");
 
             return pageTxtModified;
         }
 
-        private string RemoveConsecutiveLinebreaks(string pageTxt)
+        private string RemoveUTF8NonBreakingSpace(string pageTxt)
         {
             // Max 2 consecutive linebreaks
-            var pageTxtModified = Regex.Replace(pageTxt, @"(\n[\t ]+){3,10}", delegate (Match match)
-            {
-                return "\n\n";
-            });
+            var pageTxtModified = Regex.Replace(pageTxt, @"(\xa0|\xc2|\xc2\xa0)", string.Empty);
+
+            return pageTxtModified;
+        }
+
+        private string RemoveHtmlCommentBlocks(string pageTxt)
+        {
+            // Pandoc produce <!-- --> tags
+            var pageTxtModified = Regex.Replace(pageTxt, @"(\n|\r|\r\n)( )*\<!--( )*--\>( )*", "");
+
+            return pageTxtModified;
+        }
+
+        
+
+        private string DeduplicateLinebreaks(string pageTxt)
+        {
+            // PanDoc seems to produce 2 linebreaks characters for each linebreak in original DocX file
+            // Replace all pair of linebreak by a single linebreak
+            var pageTxtModified = Regex.Replace(pageTxt, @"(\n{2}|\r{2}|(\r\n){2})", Environment.NewLine);
+
+            return pageTxtModified;
+        }
+
+        private string MaxTwoLineBreaksInARow(string pageTxt)
+        {
+            // Max 2 consecutive linebreaks
+            var pageTxtModified = Regex.Replace(pageTxt, @"((\n[ \t]*\n+)|(\r[ \t]*\r+)|(\r\n[ \t]*\r\n+))", 
+                Environment.NewLine + Environment.NewLine, RegexOptions.Multiline);
 
             return pageTxtModified;
         }
 
         private string RemoveQuotationBlocks(string pageTxt)
         {
-            string regex = @"\n>\n";
+            string regex = @"(\n|\r|\r\n)>(\n|\r|\r\n)";
             var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
             {
-                return "\n";
+                return Environment.NewLine;
             });
 
-            string regex2 = @"\n>[ ]?";
+            string regex2 = @"(\n|\r|\r\n)>[ ]?";
             pageTxtModified = Regex.Replace(pageTxtModified, regex2, delegate (Match match)
             {
-                return "\n";
+                return Environment.NewLine;
             });
 
 
