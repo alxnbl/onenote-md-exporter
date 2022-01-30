@@ -129,8 +129,7 @@ namespace alxnbl.OneNoteMdExporter
 
             var editSettings = Console.ReadLine();
 
-            string TEMP = editSettings.ToLower();
-            if (TEMP.Equals(Localizer.GetString("YesAnswer")))
+            if (string.Equals(editSettings, Localizer.GetString("YesAnswer"), StringComparison.CurrentCultureIgnoreCase))
             {
                 var process = new Process();
                 process.StartInfo.FileName = "notepad.exe";
