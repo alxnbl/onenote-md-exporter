@@ -159,11 +159,11 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                 else if (page.PageLevel == 2)
                 {
                     pageL2Cursor = page;
-                    page.ParentPage = pageL1Cursor;
+                    page.SetParentPage(pageL1Cursor);
                 }
                 else if (page.PageLevel == 3)
                 {
-                    page.ParentPage = pageL2Cursor ?? pageL1Cursor; // If page level 3 under a page level 1
+                    page.SetParentPage(pageL2Cursor ?? pageL1Cursor); // If page level 3 under a page level 1
                 }
 
                 oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piAll);

@@ -9,7 +9,17 @@ namespace alxnbl.OneNoteMdExporter.Models
     {
         public int PageLevel { get; set; }
 
-        public Page ParentPage { get; set; }
+        private Page _parentPage { get; set; }
+
+        public Page ParentPage { get; }
+
+        public void SetParentPage(Page parentPage)
+        {
+            _parentPage = parentPage;
+            parentPage.ChildPages.Add(this);
+        }
+
+        public IList<Page> ChildPages { get; set; } = new List<Page>();
 
         /// <summary>
         /// Ordering of the page inside the Section

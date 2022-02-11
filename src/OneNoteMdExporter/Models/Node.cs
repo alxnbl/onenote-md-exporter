@@ -10,7 +10,7 @@ namespace alxnbl.OneNoteMdExporter.Models
     {
         public string Title { get; set; }
 
-        public Node Parent { get; }
+        public Node Parent { get; internal set; }
 
         public List<Node> Childs { get; set; } = new List<Node>();
 
@@ -28,6 +28,13 @@ namespace alxnbl.OneNoteMdExporter.Models
         {
             Parent = parent;
             Id = Guid.NewGuid().ToString().Replace("-", string.Empty);
+        }
+
+        public void ReplaceParent(Node newParentNode)
+        {
+            Parent.Childs.Remove(this);
+            Parent = newParentNode;
+            newParentNode.Childs.Add(this);
         }
 
         public List<Node> GetChilds()
