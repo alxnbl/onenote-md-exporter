@@ -117,16 +117,16 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 Log.Debug($"{page.OneNoteId}: success");
 
-
-                // Convert docx file into Md using PanDoc
-                var pageMd = _convertServer.ConvertDocxToMd(page, docxFileTmpFile, GetTmpFolder(page));
-
                 if (_appSettings.Debug || _appSettings.KeepOneNoteDocxFiles)
                 {
                     // If debug mode enabled, copy the page docx file next to the page md file
                     var docxFilePath = Path.ChangeExtension(GetPageMdFilePath(page), "docx");
                     File.Copy(docxFileTmpFile, docxFilePath);
                 }
+
+                // Convert docx file into Md using PanDoc
+                var pageMd = _convertServer.ConvertDocxToMd(page, docxFileTmpFile, GetTmpFolder(page));
+
                 if(_appSettings.Debug)
                 { 
                     // And write Pandoc markdown file

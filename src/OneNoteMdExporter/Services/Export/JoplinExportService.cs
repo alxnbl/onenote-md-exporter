@@ -115,12 +115,41 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             foreach (Page page in pages)
             {
+                if (_appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsFolderTree)
+                {
+                    MovePageHierarchyInADedicatedNotebook(page);
+                }
+
                 Log.Information($"   {Localizer.GetString("Page")} {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
 
                 ExportPage(page);
             }
         }
 
+        private void MovePageHierarchyInADedicatedNotebook(Page page)
+        {
+            if (page.ChildPages.Any())
+            {
+                // Page has subpage attached to it => Create a new section and attach the page to it
+
+                var pageSection = new Section(page.Parent)
+                {
+                    Title = page.Title,
+                    CreationDate = page.CreationDate,
+                    LastModificationDate = page.LastModificationDate,
+                    IsSectionGroup = false
+                };
+
+                foreach (var subpage in page.ChildPages)
+                {
+                    subpage.ReplaceParent(pageSection);
+                }
+
+                page.ReplaceParent(pageSection);
+
+                WriteSectionNodeMdFile(pageSection);
+            }
+        }
 
         private string GetJoplinAttachmentMetadata(Attachement attach)
         {
@@ -160,16 +189,16 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             var sb = new StringBuilder();
 
-            if(node is Page page)
+            if(node is Page page && _appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsPageTitlePrefix)
             {
-                sb.Append($"{page.TitleWithPageLevelTabulation}\n\n");
+                sb.Append($"{page.TitleWithPageLevelTabulation}{Environment.NewLine}{Environment.NewLine}");
             }
             else
             {
-                sb.Append($"{node.Title}\n\n");
+                sb.Append($"{node.Title}{Environment.NewLine}{Environment.NewLine}");
             }
 
-            sb.Append($"{mdFileContent}\n");
+            sb.Append($"{mdFileContent}{Environment.NewLine}");
 
             var data = new Dictionary<string, string>();
 
@@ -210,7 +239,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             foreach (var metadata in data)
             {
-                sb.Append($"\n{metadata.Key}: {metadata.Value}");
+                sb.Append($"{Environment.NewLine}{metadata.Key}: {metadata.Value}");
             }
 
             mdFileContent = sb.ToString();

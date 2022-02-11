@@ -57,9 +57,6 @@ namespace alxnbl.OneNoteMdExporter
 
         private static void RunOptions(Options opts)
         {
-            var appSettings = AppSettings.LoadAppSettings();
-            appSettings.Debug = opts.Debug;
-
             InitLogger();
 
             OneNoteApp = new OneNote.Application();
@@ -97,6 +94,9 @@ namespace alxnbl.OneNoteMdExporter
 
             if (!opts.NoInput)
                 UpdateSettingsForm();
+
+            var appSettings = AppSettings.LoadAppSettings();
+            appSettings.Debug = opts.Debug;
 
             var exportService = ExportServiceFactory.GetExportService(exportFormat, appSettings, OneNoteApp);
 
