@@ -8,7 +8,7 @@ One of the objectives of this tool it to offer the most simple and lossless solu
 | Formatted content | ✅ | ✅ |
 | **Hierarchy of sections** | ✅ Sub-Notebooks | 🟠 Flattened as Tag |
 | **Page order inside a section** | ✅ | 🔴 All pages part of a single Notebook |
-| **Page hierarchy (level)** | ✅ Page title prefix <br/>(--- \<Page\>) | 🔴 |
+| **Page hierarchy (level)** | ✅ Sub-Notebooks (\*1)<br />✅ Prefix page title (\*2)| 🔴 |
 | Attachments  | ✅ At their original position | 🟠 At the end of the page |
 | Note metadata | ✅ | ✅ |
 | Image  | ✅ | ✅ |
@@ -25,6 +25,8 @@ One of the objectives of this tool it to offer the most simple and lossless solu
 | Password protected sections | 🔴 Lost | 🔴 Lost |
 | Notebook internal link | 🔴 onenote:// url | 🔴 onenote:// url |
 
+(\*1) : setting `ProcessingOfPageHierarchy = HiearchyAsFolderTree` (default)<br />
+(\*2) : setting `ProcessingOfPageHierarchy = HiearchyAsPageTitlePrefix`
 
 # User guide
 
