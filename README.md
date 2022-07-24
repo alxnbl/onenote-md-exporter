@@ -6,9 +6,9 @@ This tool is usefull to :
   
 # Requirements
 
-- Windows 10
-- OneNote and Word 2016 or +
-  - OneNote for Windows (from the Windows store) is not supported.
+- Windows >=10
+- OneNote >= 2016, OneNote for Windows (from the Windows store) is not supported
+- Word >= 2016
 
 # Getting started
 
