@@ -16,6 +16,8 @@ namespace alxnbl.OneNoteMdExporter
 {
     public class Program
     {
+        private const string loggerFilename = "logs.txt";
+
         public class Options
         {
             [Option('n', "notebook", Required = false, HelpText = "The name of the notebook to export")]
@@ -106,11 +108,37 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information(Localizer.GetString("StartExportingNotebook"), notebook.Title);
                 Log.Information("***************************************");
 
-                exportService.ExportNotebook(notebook, opts.SectionName, opts.PageName);
+                var result = exportService.ExportNotebook(notebook, opts.SectionName, opts.PageName);
 
-                Log.Information("");
-                Log.Information(Localizer.GetString("ExportSuccessful"), Path.GetFullPath(notebook.ExportFolder));
-                Log.Information("");
+                if(!string.IsNullOrEmpty(result.NoteBookExportErrorMessage))
+                {
+                    // Unable to finalize notebook export
+                    Log.Error(result.NoteBookExportErrorMessage);
+
+                    if (!opts.NoInput)
+                    {
+                        Log.Information(Localizer.GetString("PressEnter"));
+                        Console.ReadLine();
+                    }
+                }
+                else if (result.PagesOnError > 0)
+                {
+                    Log.Information("");
+                    Log.Warning(Localizer.GetString("ExportEndedWithErrors"), Path.GetFullPath(notebook.ExportFolder), result.PagesOnError, loggerFilename);
+                    Log.Information("");
+
+                    if (!opts.NoInput)
+                    {
+                        Log.Information(Localizer.GetString("PressEnter"));
+                        Console.ReadLine();
+                    }
+                }
+                else
+                {
+                    Log.Information("");
+                    Log.Information(Localizer.GetString("ExportSuccessful"), Path.GetFullPath(notebook.ExportFolder));
+                    Log.Information("");
+                }
             }
 
             if (!opts.NoInput)
@@ -231,7 +259,7 @@ namespace alxnbl.OneNoteMdExporter
         private static void InitLogger()
         {
             Log.Logger = new LoggerConfiguration()
-               .WriteTo.File("logs.txt", outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+               .WriteTo.File(loggerFilename, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                .WriteTo.Console(Serilog.Events.LogEventLevel.Information, "{Message:lj}{NewLine}")
                .CreateLogger();
         }

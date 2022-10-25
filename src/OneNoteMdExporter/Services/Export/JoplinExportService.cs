@@ -62,8 +62,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="notebook">The notebook</param>
         /// <param name="sectionNameFilter">Only export the specified section</param>
         /// <param name="pageNameFilter">Only export the specified page</param>
-        public override void ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
+        public override NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
+            var result = new NotebookExportResult();
+
             // Get all sections and section groups, or the one specified in parameter if any
             var sections = notebook.GetSections(true).Where(s => string.IsNullOrEmpty(sectionNameFilter) || s.Title == sectionNameFilter).ToList();
 
@@ -82,8 +84,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 WriteSectionNodeMdFile(section);
 
                 if (!section.IsSectionGroup)
-                    ExportSectionPages(section, pageNameFilter);
+                {
+                    var sectionResult = ExportSectionPages(section, pageNameFilter);
+                    result.PagesOnError += sectionResult.PagesOnError;
+                }
             }
+
+            return result;
         }
 
         /// <summary>
@@ -104,8 +111,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// Export a joplin md file for each page of the section and process page's attachments
         /// </summary>
         /// <param name="section"></param>
-        private void ExportSectionPages(Section section, string pageNameFilter = "")
+        private SectionExportResult ExportSectionPages(Section section, string pageNameFilter = "")
         {
+            var result = new SectionExportResult();
+
             Log.Debug($"Start exporting pages of section {section.Title}");
 
             // Get pages of the section and apply provided filter if any
@@ -122,8 +131,12 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 Log.Information($"   {Localizer.GetString("Page")} {++cmpt}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
 
-                ExportPage(page);
+                var success = ExportPage(page);
+
+                if (!success) result.PagesOnError++;
             }
+
+            return result;
         }
 
         private void MovePageHierarchyInADedicatedNotebook(Page page)

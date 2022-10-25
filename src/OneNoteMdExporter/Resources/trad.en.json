@@ -12,6 +12,7 @@
   "StartExportingNotebook": "Start exporting notebook: {0}",
   "ExportSuccessful": "--> Notebook export successful\nExport folder : '{0}'",
   "ErrorDuringPageProcessing": "Error during processing of page {0} [{1}]. Page ignored. Error message : {2}",
+  "ErrorDuringPageProcessingIsOneNoteRunning": "Error during processing of page {0} [{1}], *verify that OneNote is correctly started*. Page ignored. Error message : {2}",
   "ErrorDuringSectionProcessing": "Error during processing of section {0} [{1}]. Error message : {2}",
   "ErrorDuringNotebookProcessingNbTree": "Error during processing of notebook {0} [{1}]. Can't browse notebook tree. Error message : {2}",
   "EndOfExport": "\nPress any key to exit...",
@@ -26,5 +27,7 @@
   "FoundXSections": "--> Found {0} sections\n",
   "FoundXSectionsAndSecGrp": "--> Found {0} sections and sections groups\n",
   "StartProcessingSectionX": "Start processing section",
-  "Page": "Page"
+  "Page": "Page",
+  "ExportEndedWithErrors": "--> WARNING: export of your notebook has ended with {1} page(s) on error.\\You can find more details in the log file '{2}'.\\nExport folder : '{0}'"
+
 }

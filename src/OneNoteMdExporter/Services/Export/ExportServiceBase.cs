@@ -56,7 +56,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected abstract string GetPageMdFilePath(Page page);
 
 
-        public void ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
+        public NotebookExportResult ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
             notebook.ExportFolder = $"{Localizer.GetString("ExportFolder")}\\{_exportFormatCode}\\{notebook.GetNotebookPath()}-{DateTime.Now.ToString("yyyyMMdd HH-mm")}";
             CleanUpFolder(notebook);
@@ -68,14 +68,17 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
             catch (Exception ex)
             {
-                Log.Error(ex, Localizer.GetString("ErrorDuringNotebookProcessingNbTree"), notebook.Title, notebook.Id, ex.Message);
-                return;
+                return new NotebookExportResult {
+                    NoteBookExportErrorCode = "ErrorDuringNotebookProcessingNbTree",
+                    NoteBookExportErrorMessage = String.Format(Localizer.GetString("ErrorDuringNotebookProcessingNbTree"), 
+                        notebook.Title, notebook.Id, ex.Message)
+                };
             }
 
-            ExportNotebookInTargetFormat(notebook, sectionNameFilter, pageNameFilter);
+            return ExportNotebookInTargetFormat(notebook, sectionNameFilter, pageNameFilter);
         }
 
-        public abstract void ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "");
+        public abstract NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "");
 
         private void CleanUpFolder(Notebook notebook)
         {
@@ -95,8 +98,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// Export a Page and its attachments
         /// </summary>
         /// <param name="page"></param>
-        /// <returns></returns>
-        protected void ExportPage(Page page)
+        /// <returns>True if the export finished with success</returns>
+        protected bool ExportPage(Page page)
         {
             // Suffix page title
             EnsurePageUniquenessPerSection(page);
@@ -165,10 +168,17 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 pageMd = FinalizePageMdPostProcessing(page, pageMd);
 
                 WritePageMdFile(page, pageMd);
+
+                return true;
             }
             catch (Exception ex)
             {
-                LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                var errorLabelCode = ex.Message.Contains("0x800706BE") ? "ErrorDuringPageProcessingIsOneNoteRunning" 
+                    : "ErrorDuringPageProcessing";
+
+                LogError(page, ex, String.Format(Localizer.GetString(errorLabelCode), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                
+                return false;
             }
         }
 
