@@ -118,7 +118,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             Log.Debug($"Start exporting pages of section {section.Title}");
 
             // Get pages of the section and apply provided filter if any
-            var pages = _oneNoteApp.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+            var pages = _oneNoteApp.FillSectionPages(section, _appSettings).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
 
             int cmpt = 0;
 

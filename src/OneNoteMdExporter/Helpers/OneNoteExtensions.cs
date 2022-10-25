@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using alxnbl.OneNoteMdExporter.Infrastructure;
 
 namespace alxnbl.OneNoteMdExporter.Helpers
 {
@@ -65,7 +66,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             return section;
         }
 
-        public static Page GetPage(this XElement element, Section parentSection)
+        public static Page GetPage(this XElement element, Section parentSection, AppSettings appSettings)
         {
             var pageId = element.Attribute("ID")?.Value;
 
@@ -75,8 +76,8 @@ namespace alxnbl.OneNoteMdExporter.Helpers
 
             var title = element.Attribute("name").Value;
 
-            // Limit title max size, especilay for notes with not title where the 1st paragraphe is returned as a title
-            if (title.Length > 50)
+            // Limit title max size, especilay for notes with no title where the 1st paragraphe is returned as a title
+            if (title.Length > appSettings.PageTitleMaxLength)
                 title = new string(title.Take(50).ToArray()) + "...";
 
             var page = new Page(parentSection)
@@ -132,7 +133,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
         /// </summary>
         /// <param name="section"></param>
         /// <returns>List of pages</returns>
-        public static IList<Page> FillSectionPages(this Application oneNoteApp, Section section)
+        public static IList<Page> FillSectionPages(this Application oneNoteApp, Section section, AppSettings appSettings)
         {
             oneNoteApp.GetHierarchy(section.OneNoteId, HierarchyScope.hsPages, out var xmlStr);
             var xmlSection = XDocument.Parse(xmlStr).Root;
@@ -141,7 +142,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             var xmlPages = xmlSection.Descendants(ns + "Page")
                 .Where(e => e.Attribute("isRecycleBin") == null && e.Attribute("isDeletedPages") == null);
 
-            var childPages = xmlPages.Select(xmlP => xmlP.GetPage(section)).ToList();
+            var childPages = xmlPages.Select(xmlP => xmlP.GetPage(section, appSettings)).ToList();
 
             Page pageL1Cursor = null;
             Page pageL2Cursor = null;

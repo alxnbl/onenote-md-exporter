@@ -93,7 +93,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     throw new InvalidOperationException("Cannot call ExportSection on section group with MdExport");
 
                 // Get pages list
-                var pages = _oneNoteApp.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+                var pages = _oneNoteApp.FillSectionPages(section, _appSettings).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
 
                 int cmptPage = 0;
 
