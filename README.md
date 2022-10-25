@@ -14,8 +14,7 @@ This tool is usefull to :
 
 1. Download the last release of OneNoteMdExporter from the [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
 2. Extract the content of the Zip archive
-3. Launch OneNote and be sure that notebooks to export are opened
-   * If an error is displayed during startup, your Office installation may be damaged. Try to repair it from *Windows > Settings  > Apps > Apps & features*.
+3. Launch OneNote and be sure that notebooks to export are loaded
 4. Export your notebooks :
    * Start `OneNoteMdExporter.exe`
    * Select the Notebook to export
