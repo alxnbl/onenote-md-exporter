@@ -55,7 +55,7 @@ namespace alxnbl.OneNoteMdExporter
                     });
         }
 
-        private static OneNote.Application OneNoteApp;
+        public static OneNote.Application OneNoteApp;
 
         private static void RunOptions(Options opts)
         {
