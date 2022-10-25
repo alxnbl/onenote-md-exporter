@@ -61,7 +61,22 @@ namespace alxnbl.OneNoteMdExporter
         {
             InitLogger();
 
-            OneNoteApp = new OneNote.Application();
+            try
+            {
+                OneNoteApp = new OneNote.Application();
+            }
+            catch (Exception)
+            {
+                Log.Error("ErrorPreventToCommunicateWithOneNote");
+
+                if (!opts.NoInput)
+                {
+                    Log.Information(Localizer.GetString("PressEnter"));
+                    Console.ReadLine();
+                }
+
+                throw;
+            }
 
             WelcomeScreen(opts);
 

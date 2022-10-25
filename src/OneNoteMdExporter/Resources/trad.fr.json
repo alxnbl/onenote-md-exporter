@@ -27,5 +27,6 @@
   "FoundXSectionsAndSecGrp": "--> {0} sections et groupes de section trouvés\n",
   "StartProcessingSectionX": "Début du traitement de la section",
   "Page": "Page",
-  "ExportEndedWithErrors": "--> ATTENTION: l'export du bloc-note s'est terminé avec {1} page(s) en erreur.\nVous pouvez consulter le détail des logs dans le fichier '{2}'.\nDossier de l'export : '{0}'"
+  "ExportEndedWithErrors": "--> ATTENTION: l'export du bloc-note s'est terminé avec {1} page(s) en erreur.\nVous pouvez consulter le détail des logs dans le fichier '{2}'.\nDossier de l'export : '{0}'",
+  "ErrorPreventToCommunicateWithOneNote": "Une erreur s'est produit lors de la communication avec OneNote. Votre installation d'Office est peut être corrompue. Vous pouvez tenter de la réparer en exécutant l'utilitaire de réparation Office. Pour cela consulter la page suivante : https://support.microsoft.com/fr-fr/office/r%C3%A9parer-une-application-office-7821d4b6-7c1d-4205-aa0e-a6b40c5bb88b ."
 }

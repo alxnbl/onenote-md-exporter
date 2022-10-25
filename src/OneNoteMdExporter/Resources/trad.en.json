@@ -28,6 +28,6 @@
   "FoundXSectionsAndSecGrp": "--> Found {0} sections and sections groups\n",
   "StartProcessingSectionX": "Start processing section",
   "Page": "Page",
-  "ExportEndedWithErrors": "--> WARNING: export of your notebook has ended with {1} page(s) on error.\\You can find more details in the log file '{2}'.\\nExport folder : '{0}'"
-
+  "ExportEndedWithErrors": "--> WARNING: export of your notebook has ended with {1} page(s) on error.\\You can find more details in the log file '{2}'.\\nExport folder : '{0}'",
+  "ErrorPreventToCommunicateWithOneNote": "An error occurs while trying to communicate with OneNote. Your Office installation may be corrupted. You can try to fix this by running the Office repair utility. Please refer to : https://support.microsoft.com/en-us/office/repair-an-office-application-7821d4b6-7c1d-4205-aa0e-a6b40c5bb88b ."
 }
