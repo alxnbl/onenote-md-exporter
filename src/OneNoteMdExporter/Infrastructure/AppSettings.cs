@@ -11,6 +11,11 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
           * */
 
         /// <summary>
+        /// Maximum number of characters of a page title. Among this limit, title is contracted.
+        /// </summary>
+        public int PageTitleMaxLength { get; set; } = 50;
+
+        /// <summary>
         /// Add at the begining of each page a YAML header that include Page metadata (cf https://assemble.io/docs/YAML-front-matter.html)
         /// </summary>
         public bool AddFrontMatterHeader { get; set; } = true;
@@ -53,6 +58,8 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// Name of the resource folder where attachemnts and image files are stored
         /// </summary>
         public string ResourceFolderName { get; set; } = "_resources";
+
+
 
         /*
          * Markdown rendering Settings

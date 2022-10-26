@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -19,7 +20,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
     public abstract class ExportServiceBase : IExportService
     {
         protected readonly AppSettings _appSettings;
-        protected readonly Application _oneNoteApp;
+        protected Application _oneNoteApp;
         protected readonly ConverterService _convertServer;
 
         protected string _exportFormatCode;
@@ -56,7 +57,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected abstract string GetPageMdFilePath(Page page);
 
 
-        public void ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
+        public NotebookExportResult ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
             notebook.ExportFolder = $"{Localizer.GetString("ExportFolder")}\\{_exportFormatCode}\\{notebook.GetNotebookPath()}-{DateTime.Now.ToString("yyyyMMdd HH-mm")}";
             CleanUpFolder(notebook);
@@ -68,14 +69,17 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
             catch (Exception ex)
             {
-                Log.Error(ex, Localizer.GetString("ErrorDuringNotebookProcessingNbTree"), notebook.Title, notebook.Id, ex.Message);
-                return;
+                return new NotebookExportResult {
+                    NoteBookExportErrorCode = "ErrorDuringNotebookProcessingNbTree",
+                    NoteBookExportErrorMessage = String.Format(Localizer.GetString("ErrorDuringNotebookProcessingNbTree"), 
+                        notebook.Title, notebook.Id, ex.Message)
+                };
             }
 
-            ExportNotebookInTargetFormat(notebook, sectionNameFilter, pageNameFilter);
+            return ExportNotebookInTargetFormat(notebook, sectionNameFilter, pageNameFilter);
         }
 
-        public abstract void ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "");
+        public abstract NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "");
 
         private void CleanUpFolder(Notebook notebook)
         {
@@ -95,8 +99,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// Export a Page and its attachments
         /// </summary>
         /// <param name="page"></param>
-        /// <returns></returns>
-        protected void ExportPage(Page page)
+        /// <param name="retry">True if the execution is caused by a retry after an error on the page</param>
+        /// <returns>True if the export finished with success</returns>
+        protected bool ExportPage(Page page, bool retry = false)
         {
             // Suffix page title
             EnsurePageUniquenessPerSection(page);
@@ -165,10 +170,49 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 pageMd = FinalizePageMdPostProcessing(page, pageMd);
 
                 WritePageMdFile(page, pageMd);
+
+                return true;
             }
             catch (Exception ex)
             {
-                LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                if(ex.Message.Contains("0x800706BE"))
+                {
+                    LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessingIsOneNoteRunning"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                }
+                else if (ex.Message.Contains("0x800706BA")) // Server RPC not available, occurs after a crash of OneNote
+                {
+                    if (!retry)
+                    {
+                        // 1st attempt, reinit OneNote connector and make a 2nd try
+
+                        var delayBeforeRetrySeconds = 10;
+                        LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessingRetryInProgress"), page.TitleWithPageLevelTabulation, page.Id, ex.Message, delayBeforeRetrySeconds));
+                        
+                        _oneNoteApp = null;
+                        Thread.Sleep(delayBeforeRetrySeconds * 1000);
+                        // Recreate OneNote COM component to avoid "Server RPC not available" arrors
+                        _oneNoteApp = new Application();
+
+                        var retrySuccess = ExportPage(page, true);
+                        if (retrySuccess)
+                        {
+                            Log.Information($"Page '{page.GetPageFileRelativePath(_appSettings.MdMaxFileLength)}': {Localizer.GetString("SuccessPageExportAfterRetry")}");
+                            return true;
+                        }
+                        else
+                            LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                    }
+                    else
+                    {
+                        LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                    }
+                }
+                else
+                {
+                    LogError(page, ex, String.Format(Localizer.GetString("ErrorDuringPageProcessing"), page.TitleWithPageLevelTabulation, page.Id, ex.Message));
+                }
+
+                return false;
             }
         }
 
@@ -233,7 +277,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attach"></param>
         private void InsertPageMdAttachmentReference(ref string pageMdFileContent, Attachement attach, Func<Attachement, string> getAttachMdReferenceMethod)
         {
-            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(>\\\\>)", delegate (Match match)
+            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(\\\\>){2}", delegate (Match match)
             {
                 var refFileName = match.Groups["fileName"]?.Value ?? "";
                 var attachOriginalFileName = attach.OneNotePreferredFileName ;

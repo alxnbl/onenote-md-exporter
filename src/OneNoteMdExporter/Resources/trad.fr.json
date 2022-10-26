@@ -12,6 +12,9 @@
   "StartExportingNotebook": "Début de l'export du bloc-note : {0}",
   "ExportSuccessful": "--> Export du bloc-note terminé\nDossier de l'export : '{0}'",
   "ErrorDuringPageProcessing": "Erreur durant le traitement de la page [{1}]. Page ignorée. Message d'erreur : {2}",
+  "ErrorDuringPageProcessingIsOneNoteRunning": "Erreur durant le traitement de la page [{1}], page ignorée. La page est peut-être corrompue ou OneNote n'est pas démarré. Message d'erreur : {2}",
+  "ErrorDuringPageProcessingRetryInProgress": "Erreur durant le traitement de la page [{1}], impossible de communiquer avec OneNote. Attente de {3}s avant nouvel essai.",
+  "SuccessPageExportAfterRetry": "Export de la page réussi.",
   "ErrorDuringSectionProcessing": "Erreur durant le traitement de la section {0} [{1}]. Message d'erreur : {2}",
   "ErrorDuringNotebookProcessingNbTree": "Erreur durant le traitement du bloc-note {0} [{1}]. Impossible de charger l'arborescence. Message d'erreur : {2}",
   "EndOfExport": "\nAppuyez sur une touche pour quitter...",
@@ -25,5 +28,7 @@
   "FoundXSections": "--> {0} sections trouvées\n",
   "FoundXSectionsAndSecGrp": "--> {0} sections et groupes de section trouvés\n",
   "StartProcessingSectionX": "Début du traitement de la section",
-  "Page": "Page"
+  "Page": "Page",
+  "ExportEndedWithErrors": "--> ATTENTION: l'export du bloc-note s'est terminé avec {1} page(s) en erreur.\nVous pouvez consulter le détail des logs dans le fichier '{2}'.\nDossier de l'export : '{0}'",
+  "ErrorPreventToCommunicateWithOneNote": "Une erreur s'est produit lors de la communication avec OneNote. Votre installation d'Office est peut être corrompue. Vous pouvez tenter de la réparer en exécutant l'utilitaire de réparation Office. Pour cela consulter la page suivante : https://support.microsoft.com/fr-fr/office/r%C3%A9parer-une-application-office-7821d4b6-7c1d-4205-aa0e-a6b40c5bb88b ."
 }

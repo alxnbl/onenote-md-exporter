@@ -11,7 +11,7 @@ namespace alxnbl.OneNoteMdExporter.Models
 
         private Page _parentPage { get; set; }
 
-        public Page ParentPage { get; }
+        public Page ParentPage { get => _parentPage; }
 
         public void SetParentPage(Page parentPage)
         {

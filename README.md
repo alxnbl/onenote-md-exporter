@@ -7,14 +7,14 @@ This tool is usefull to :
 # Requirements
 
 - Windows >=10
-- OneNote >= 2016, OneNote for Windows (from the Windows store) is not supported
-- Word >= 2016
+- OneNote >= 2013, OneNote for Windows (from the Windows store) is not supported
+- Word >= 2013
 
 # Getting started
 
 1. Download the last release of OneNoteMdExporter from the [Releases page](https://github.com/alxnbl/onenote-md-exporter/releases)
 2. Extract the content of the Zip archive
-3. Launch OneNote and be sure that notebooks to export are opened
+3. Launch OneNote and be sure that notebooks to export are loaded
 4. Export your notebooks :
    * Start `OneNoteMdExporter.exe`
    * Select the Notebook to export
@@ -83,7 +83,7 @@ ___
 
 # Technical characteristics
 
-* DotNet 5 self-contained console application
+* DotNet 6 self-contained console application
 * Export page as DocX and translate them in Markdown using PanDoc
 * Offline : no call to Microsoft cloud
 * Based on Office Interop APIs
@@ -108,7 +108,7 @@ Pandoc is released under the following licence terms, full licence details can b
 
 # Build sources
 
-* Install DotNet 5 : https://dotnet.microsoft.com/download/dotnet/5.0
+* Install DotNet 6 : https://dotnet.microsoft.com/download/dotnet/6.0
 * Clone this repository
 * Extract `pandoc.exe` from `pandoc-<Version>-windows-x86_64.zip` from `/src/OneNoteMdExporter/pandoc/` folder
 * Build using Visual Studio 2019 or MSBUILD.exe (`dotnet build` do not currently support COMReference : https://aka.ms/msbuild/MSB4803) 

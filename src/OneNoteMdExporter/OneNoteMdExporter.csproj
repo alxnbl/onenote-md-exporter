@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <PublishSingleFile>true</PublishSingleFile>
+    <TargetFramework>net6.0</TargetFramework>
+	<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishTrimmed>False</PublishTrimmed>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <PackageId>OneNoteMdExporter</PackageId>
     <Authors>alxnbl</Authors>
     <Company />

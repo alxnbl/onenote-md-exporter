@@ -74,8 +74,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             _exportFormatCode = "md";
         }
 
-        public override void ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
+        public override NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
+            var result = new NotebookExportResult();
+
             // Get all sections and section groups, or the one specified in parameter if any
             var sections = notebook.GetSections().Where(s => string.IsNullOrEmpty(sectionNameFilter) || s.Title == sectionNameFilter).ToList();
 
@@ -91,16 +93,20 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     throw new InvalidOperationException("Cannot call ExportSection on section group with MdExport");
 
                 // Get pages list
-                var pages = _oneNoteApp.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+                var pages = _oneNoteApp.FillSectionPages(section, _appSettings).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
 
                 int cmptPage = 0;
 
                 foreach (Page page in pages)
                 {
                     Log.Information($"   {Localizer.GetString("Page")} {++cmptPage}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
-                    ExportPage(page);
+                    var success = ExportPage(page);
+
+                    if (!success) result.PagesOnError++;
                 }
             }
+
+            return result;
         }
 
         protected override void WritePageMdFile(Page page, string pageMd)

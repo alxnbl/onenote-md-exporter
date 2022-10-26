@@ -23,6 +23,7 @@ Join the "logs.txt" log file located in the directory of the tool.
 ⚠️ Ensure that the log file do not contain any personal data ⚠️
 
 **Desktop (please complete the following information):**
+ - OneNodeMdExporter version : XXXX
  - Windows version : XXXX 32/64 bits
  - Office Version : XXXX 32/64 bits
 
