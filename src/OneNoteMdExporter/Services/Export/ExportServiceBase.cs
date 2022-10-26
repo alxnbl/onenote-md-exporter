@@ -277,7 +277,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attach"></param>
         private void InsertPageMdAttachmentReference(ref string pageMdFileContent, Attachement attach, Func<Attachement, string> getAttachMdReferenceMethod)
         {
-            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(>\\\\>)", delegate (Match match)
+            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(\\\\>){2}", delegate (Match match)
             {
                 var refFileName = match.Groups["fileName"]?.Value ?? "";
                 var attachOriginalFileName = attach.OneNotePreferredFileName ;
