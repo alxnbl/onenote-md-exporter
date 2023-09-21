@@ -117,6 +117,8 @@ namespace alxnbl.OneNoteMdExporter.Services
             {
                 mdFileContent = RemoveOneNoteHeader(mdFileContent);
             }
+
+            mdFileContent = InsertMdHighlight(mdFileContent);
         }
 
         private string RemoveOneNoteHeader(string pageTxt)
@@ -176,6 +178,22 @@ namespace alxnbl.OneNoteMdExporter.Services
                 return Environment.NewLine;
             });
 
+
+            return pageTxtModified;
+        }
+
+        /// <summary>
+        /// Replace PanDoc html tags <span class="mark">text</span> by ==text== 
+        /// </summary>
+        /// <param name="pageTxt"></param>
+        /// <returns></returns>
+        private string InsertMdHighlight(string pageTxt)
+        {
+            string regex = @"\<span class=\""mark\""\>(?<text>.*)\</span\>";
+            var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
+            {
+                return "==" + (match.Groups["text"]?.Value ?? "") + "==";
+            });
 
             return pageTxtModified;
         }
