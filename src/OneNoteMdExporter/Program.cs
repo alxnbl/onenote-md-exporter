@@ -40,6 +40,9 @@ namespace alxnbl.OneNoteMdExporter
 
             [Option("debug", Required = false, HelpText = "Debug mode.")]
             public bool Debug { get; set; }
+
+            [Option("ignore-errors", Required = false, HelpText = "Export all notebook event in case of error.")]
+            public bool IgnoreErrors { get; set; }
         }
 
         public static void Main(params string[] args)
@@ -69,7 +72,7 @@ namespace alxnbl.OneNoteMdExporter
             {
                 Log.Error("ErrorPreventToCommunicateWithOneNote");
 
-                if (!opts.NoInput)
+                if (!opts.NoInput && !opts.IgnoreErrors)
                 {
                     Log.Information(Localizer.GetString("PressEnter"));
                     Console.ReadLine();
