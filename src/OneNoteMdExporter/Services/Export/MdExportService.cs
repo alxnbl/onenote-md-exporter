@@ -56,7 +56,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         protected override string GetAttachmentFilePath(Attachement attachement)
         {
             if (attachement.OverrideExportFilePath == null)
-                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.FriendlyFileName.RemoveMdReferenceInvalidChars());         
+                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.FriendlyFileName));         
             else
                 return attachement.OverrideExportFilePath;
         }

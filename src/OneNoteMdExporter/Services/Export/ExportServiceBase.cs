@@ -333,7 +333,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     };
 
                     imgAttach.ActualSourceFilePath = Path.GetFullPath(panDocHtmlImgTagPath);
-                    imgAttach.OriginalUserFilePath = Path.GetFullPath(panDocHtmlImgTagPath); // Not really a use file path but a PanDoc temp file
+                    imgAttach.OriginalUserFilePath = Path.GetFullPath(panDocHtmlImgTagPath); // Not really a user file path but a PanDoc temp file
 
                     page.Attachements.Add(imgAttach);
 
@@ -382,6 +382,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 var attachmentFileNameAlreadyUsed = page.GetNotebook().GetAllAttachments().Any(a => a != attach && PathExtensions.PathEquals(GetAttachmentFilePath(a), candidateFilePath));
                 
+                // because of using guid, this step should no longuer needed and need to be removed
                 if (!attachmentFileNameAlreadyUsed)
                 {
                     if (cmpt > 0)
