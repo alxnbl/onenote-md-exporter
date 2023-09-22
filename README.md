@@ -1,7 +1,7 @@
 **OneNote Md Exporter** is a console application running on Windows that exports your OneNote notebooks in different markdown formats.
 
 This tool is usefull to :
-* evaluate or migrate to an alternative Knowledge Management Software like Joplin or other software based on Markdown format
+* evaluate or migrate to an alternative Knowledge Management Software like Joplin, Obsidian or other softwares based on Markdown format
 * backup your OneNote Notebooks in an interoperable and open file format
   
 # Requirements
@@ -72,14 +72,16 @@ ___
 | All formats : |  |
 | --- | --- |
 | Attachments  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3) |
-| Image  | ✅ | ✅ |
-| Table  | ✅ | ✅ |
-| Font color and background color  | 🔴 | 🔴 |
-| Drawing | 🟠 Flattened as image | 🟠 Flattened as image |
-| Handwriting  | 🔴 Lost | 🔴 Lost |
-| Text tags (task, star...)  | 🔴 Lost | 🔴 Lost |
-| Password protected sections | 🔴 Lost unless unlocked during export | 🔴 Lost unless unlocked during export |
-| Notebook internal link | 🔴 onenote:// url | 🔴 onenote:// url |
+| Image  | ✅ |
+| Table  | ✅ |
+| Image nexted into table | 🔴 Known issue (#48) |
+| Font color| 🔴 |
+| Background color  | 🟠 Highlighted text |
+| Drawing | 🟠 Flattened as image | 
+| Handwriting  | 🔴 Lost |
+| Text tags (task, star...)  | 🔴 Lost |
+| Password protected sections | 🔴 Lost unless unlocked during export |
+| Notebook internal link | 🔴 onenote:// url |
 
 # Technical characteristics
 
