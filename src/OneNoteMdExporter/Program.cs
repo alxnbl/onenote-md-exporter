@@ -70,7 +70,7 @@ namespace alxnbl.OneNoteMdExporter
             }
             catch (Exception)
             {
-                Log.Error("ErrorPreventToCommunicateWithOneNote");
+                Log.Error(Localizer.GetString("ErrorPreventToCommunicateWithOneNote"));
 
                 if (!opts.NoInput && !opts.IgnoreErrors)
                 {
