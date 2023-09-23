@@ -189,7 +189,8 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// <returns></returns>
         private string InsertMdHighlight(string pageTxt)
         {
-            string regex = @"\<span class=\""mark\""\>(?<text>.*)\</span\>";
+            // match and replace each span block of a row
+            string regex = @"\<span class=\""mark\""\>(?<text>((?!\</span\>).)*)\</span\>"; // https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word
             var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
             {
                 return "==" + (match.Groups["text"]?.Value ?? "") + "==";
