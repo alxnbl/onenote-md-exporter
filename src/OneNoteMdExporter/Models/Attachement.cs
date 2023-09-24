@@ -12,6 +12,10 @@ namespace alxnbl.OneNoteMdExporter.Models
         public string FriendlyFileName { 
             get { return OneNotePreferredFileName ?? Path.GetFileName(OriginalUserFilePath); }
         }
+
+        public string UniqueFileName{
+            get { return $"{Path.GetFileNameWithoutExtension(FriendlyFileName)}_{Id}{Path.GetExtension(FriendlyFileName)}"; }
+        }
         /// <summary>
         /// The Friendly FileNama returned by OneNote
         /// </summary>

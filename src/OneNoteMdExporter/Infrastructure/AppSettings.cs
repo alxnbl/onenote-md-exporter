@@ -59,6 +59,10 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// </summary>
         public string ResourceFolderName { get; set; } = "_resources";
 
+        /// <summary>
+        /// Only Md Export Type .If you want your pic, doc, etc attachment file is unique in Global, you can set this Option to true
+        /// </summary>
+        public bool UniqueAttachementFileName { get; set; } = false;
 
 
         /*
