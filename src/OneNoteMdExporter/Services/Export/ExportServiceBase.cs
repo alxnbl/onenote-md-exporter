@@ -9,6 +9,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Net;
+using System.Text.Encodings.Web;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -320,7 +322,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 Match imgMatch = matchs[0];
 
                 var panDocHtmlImgTagPath = Path.GetFullPath(imgMatch.Groups["src"].Value);
-
+                panDocHtmlImgTagPath = WebUtility.HtmlDecode(panDocHtmlImgTagPath);
                 Attachement imgAttach = page.ImageAttachements.Where(img => PathExtensions.PathEquals(img.ActualSourceFilePath, panDocHtmlImgTagPath)).FirstOrDefault();
 
                 // Only add a new attachment if this is the first time the image is referenced in the page
