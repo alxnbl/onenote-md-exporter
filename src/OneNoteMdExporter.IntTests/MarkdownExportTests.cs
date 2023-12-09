@@ -26,8 +26,8 @@ namespace alxnbl.OneNoteMdExporter.IntTests
             var folderPath = matchs[0].Groups["path"].Value;
             var fileName = matchs[0].Groups["filename"].Value;
 
-            Assert.AreEqual("../_resources/", folderPath);
-            Assert.IsTrue(File.Exists(Path.Combine("TestBloc", "Image", folderPath + fileName)));
+            Assert.Equals("../_resources/", folderPath);
+            Assert.That(File.Exists(Path.Combine("TestBloc", "Image", folderPath + fileName)));
         }
     }
 }
