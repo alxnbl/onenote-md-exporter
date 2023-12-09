@@ -33,8 +33,8 @@ namespace alxnbl.OneNoteMdExporter.Models
                 return level + (level.Length > 0 ? " " : "") + Title;
             } 
         }
-        public string TitleWithNoInvalidChars(int maxLength) 
-            => Title.RemoveInvalidFileNameChars().Left(maxLength);
+        public string TitleWithNoInvalidChars(int maxLength)
+            => Title.RemoveInvalidFileNameChars().TrimEnd().Left(maxLength); // TrimEnd -> Fix https://github.com/alxnbl/onenote-md-exporter/issues/93
 
         public IList<Attachement> Attachements { get; set; } = new List<Attachement>();
         public IList<Attachement> ImageAttachements { get => Attachements.Where(a => a.Type == AttachementType.Image).ToList(); }

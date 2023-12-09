@@ -9,6 +9,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Net;
+using System.Text.Encodings.Web;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -320,7 +322,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 Match imgMatch = matchs[0];
 
                 var panDocHtmlImgTagPath = Path.GetFullPath(imgMatch.Groups["src"].Value);
-
+                panDocHtmlImgTagPath = WebUtility.HtmlDecode(panDocHtmlImgTagPath);
                 Attachement imgAttach = page.ImageAttachements.Where(img => PathExtensions.PathEquals(img.ActualSourceFilePath, panDocHtmlImgTagPath)).FirstOrDefault();
 
                 // Only add a new attachment if this is the first time the image is referenced in the page
@@ -333,7 +335,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                     };
 
                     imgAttach.ActualSourceFilePath = Path.GetFullPath(panDocHtmlImgTagPath);
-                    imgAttach.OriginalUserFilePath = Path.GetFullPath(panDocHtmlImgTagPath); // Not really a use file path but a PanDoc temp file
+                    imgAttach.OriginalUserFilePath = Path.GetFullPath(panDocHtmlImgTagPath); // Not really a user file path but a PanDoc temp file
 
                     page.Attachements.Add(imgAttach);
 
@@ -382,6 +384,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 var attachmentFileNameAlreadyUsed = page.GetNotebook().GetAllAttachments().Any(a => a != attach && PathExtensions.PathEquals(GetAttachmentFilePath(a), candidateFilePath));
                 
+                // because of using guid, this step should no longuer needed and need to be removed
                 if (!attachmentFileNameAlreadyUsed)
                 {
                     if (cmpt > 0)
