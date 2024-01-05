@@ -85,7 +85,7 @@ ___
 
 # Technical characteristics
 
-* DotNet 6 self-contained console application
+* DotNet 8 self-contained console application
 * Export page as DocX and translate them in Markdown using PanDoc
 * Offline : no call to Microsoft cloud
 * Based on Office Interop APIs
@@ -110,7 +110,7 @@ Pandoc is released under the following licence terms, full licence details can b
 
 # Build sources
 
-* Install DotNet 6 : https://dotnet.microsoft.com/download/dotnet/6.0
+* Install DotNet 8 : https://dotnet.microsoft.com/download/dotnet/8.0
 * Clone this repository
 * Extract `pandoc.exe` from `pandoc-<Version>-windows-x86_64.zip` from `/src/OneNoteMdExporter/pandoc/` folder
 * Build using Visual Studio 2019 or MSBUILD.exe (`dotnet build` do not currently support COMReference : https://aka.ms/msbuild/MSB4803) 
