@@ -80,7 +80,8 @@ ___
 | Drawing | 🟠 Flattened as image | 
 | Handwriting  | 🔴 Lost |
 | Text tags (task, star...)  | 🔴 Lost |
-| Password protected sections | 🔴 Lost unless unlocked during export |
+| Password protected sections | 🟠 Lost unless unlocked before export |
+| Folded pargraphs | 🔴 Lost |
 | Notebook internal link | 🔴 onenote:// url |
 
 # Technical characteristics
