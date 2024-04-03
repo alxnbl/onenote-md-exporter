@@ -50,7 +50,7 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
     ---
     Page content
     ```
-  * `PanDocMarkdownFormat` : choose the markdown syntax to use among [those supported by pandoc](https://pandoc.org/MANUAL.html#general-options). Use *Github flavor* by default.
+  * `PanDocMarkdownFormat` : choose the markdown syntax to use among [those supported by pandoc](https://pandoc.org/MANUAL.html#general-options). Use *GitHub flavor* by default.
 
 ## Joplin Raw Directory
 
@@ -61,7 +61,7 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
 
 | Export format: | Markdown | Joplin |
 | --- | --- | --- |
-| Hierarchy of sections | ✅ Folder hierarchy | ✅ Notbook hierarchy |
+| Hierarchy of sections | ✅ Folder hierarchy | ✅ Notebook hierarchy |
 | Page ordering inside a section | 🔴 Ordering based on md filename | ✅ |
 | Page hierarchy | ✅ Page prefix or folder prefix | ✅ |
 
@@ -71,17 +71,17 @@ ___
 
 | All formats : |  |
 | --- | --- |
-| Attachments  | 🟠 File of certain extensions are lost (wma, wmv, mpg, svg, mp3) |
+| Attachments  | ✅ |
 | Image  | ✅ |
 | Table  | ✅ |
-| Image nexted into table | 🔴 Known issue (#48) |
+| Image nexted into table | 🔴 Known issue [#48](https://github.com/alxnbl/onenote-md-exporter/issues/48) |
 | Font color| 🔴 |
 | Background color  | 🟠 Highlighted text |
 | Drawing | 🟠 Flattened as image | 
 | Handwriting  | 🔴 Lost |
 | Text tags (task, star...)  | 🔴 Lost |
 | Password protected sections | 🟠 Lost unless unlocked before export |
-| Folded pargraphs | 🔴 Lost |
+| Folded paragraphs | 🔴 Lost |
 | Notebook internal link | 🔴 onenote:// url |
 
 # Technical characteristics

@@ -167,7 +167,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                     page.SetParentPage(pageL2Cursor ?? pageL1Cursor); // If page level 3 under a page level 1
                 }
 
-                oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piAll);
+                oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piBinaryDataFileType);
 
 
                 // Alternative : return page content without binaries
@@ -175,7 +175,6 @@ namespace alxnbl.OneNoteMdExporter.Helpers
 
                 var xmlPageContent = XDocument.Parse(xmlPageContentStr).Root;
 
-                var ns2 = xmlPageContent.Name.Namespace;
                 var pageTitleOE = xmlPageContent.Descendants(ns + "Title")?.FirstOrDefault()?.Descendants(ns + "OE")?.FirstOrDefault();
                 if (pageTitleOE != null)
                 {
@@ -193,13 +192,13 @@ namespace alxnbl.OneNoteMdExporter.Helpers
 
         private static void ProcessPageAttachments(XNamespace ns, Page page, XElement xmlPageContent)
         {
-            foreach (var xmlInsertedFile in xmlPageContent.Descendants(ns + "InsertedFile"))
+            foreach (var xmlAttachment in xmlPageContent.Descendants(ns + "InsertedFile").Concat(xmlPageContent.Descendants(ns + "MediaFile")))
             {
                 var fileAttachment = new Attachement(page)
                 {
-                    ActualSourceFilePath = xmlInsertedFile.Attribute("pathCache")?.Value,
-                    OriginalUserFilePath = xmlInsertedFile.Attribute("pathSource")?.Value,
-                    OneNotePreferredFileName = xmlInsertedFile.Attribute("preferredName")?.Value,
+                    ActualSourceFilePath = xmlAttachment.Attribute("pathCache")?.Value,
+                    OriginalUserFilePath = xmlAttachment.Attribute("pathSource")?.Value,
+                    OneNotePreferredFileName = xmlAttachment.Attribute("preferredName")?.Value,
                     Type = AttachementType.File
                 };
 
