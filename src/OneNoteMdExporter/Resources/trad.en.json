@@ -7,7 +7,7 @@
   "NotebookNotFound": "Notebook not found",
   "BadInput": "Please enter a numeric value",
   "ChooseExportFormat": "\nPlease choose export format: ",
-  "ChooseExportFormat1": "[1] Markdown",
+  "ChooseExportFormat1": "[1] Markdown (default)",
   "ChooseExportFormat2": "[2] Joplin Raw Folder",
   "StartExportingNotebook": "Start exporting notebook: {0}",
   "ExportSuccessful": "--> Notebook export successful\nExport folder : '{0}'",

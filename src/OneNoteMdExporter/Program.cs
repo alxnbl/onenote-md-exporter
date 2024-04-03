@@ -47,6 +47,8 @@ namespace alxnbl.OneNoteMdExporter
 
         public static void Main(params string[] args)
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             Parser.Default.ParseArguments<Options>(args)
                    .WithParsed(options => {
                        if (string.IsNullOrEmpty(options.NotebookName))
@@ -218,8 +220,16 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information("");
             }
 
+            ExportFormat exportFormat;
 
-            if (!Enum.TryParse<ExportFormat>(optsExportFormat, true, out var exportFormat))
+            // Select 1st option by default
+            if (optsExportFormat == "")
+            {
+                exportFormat = ExportFormat.Markdown;
+                Console.CursorTop -= 2;
+                Console.WriteLine("1\n");
+            }
+            else if (!Enum.TryParse(optsExportFormat, true, out exportFormat))
             {
                 Log.Information(Localizer.GetString("BadInput"));
                 return ExportFormat.Undefined;

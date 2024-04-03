@@ -7,7 +7,7 @@
   "NotebookNotFound": "Bloc-note non trouvé",
   "BadInput": "Merci de saisir une valeur numérique",
   "ChooseExportFormat": "\nMerci de choisir le format de l'export: ",
-  "ChooseExportFormat1": "[1] Markdown",
+  "ChooseExportFormat1": "[1] Markdown (défaut)",
   "ChooseExportFormat2": "[2] Joplin Raw Folder",
   "StartExportingNotebook": "Début de l'export du bloc-note : {0}",
   "ExportSuccessful": "--> Export du bloc-note terminé\nDossier de l'export : '{0}'",

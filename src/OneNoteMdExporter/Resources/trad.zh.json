@@ -7,7 +7,7 @@
   "NotebookNotFound": "笔记本没有找到",
   "BadInput": "Please enter a numeric value",
   "ChooseExportFormat": "\n选择导出的格式: ",
-  "ChooseExportFormat1": "[1] Markdown",
+  "ChooseExportFormat1": "[1] Markdown (默认)",
   "ChooseExportFormat2": "[2] Joplin Raw Folder",
   "StartExportingNotebook": "开始导出笔记本: {0}",
   "ExportSuccessful": "--> 笔记本导出成功\n导出路径为 : '{0}'",
@@ -28,4 +28,3 @@
   "StartProcessingSectionX": "开始导出章节",
   "Page": "页面"
 }
-
