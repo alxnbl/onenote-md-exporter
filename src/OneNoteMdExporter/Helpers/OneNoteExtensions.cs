@@ -167,9 +167,9 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                     page.SetParentPage(pageL2Cursor ?? pageL1Cursor); // If page level 3 under a page level 1
                 }
 
-                oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piBinaryDataFileType);
-
-
+                // As we don't use binary data (base64-encoded images embeded into XML) we can use piBasic or piFileType here to save memory
+                oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piBasic);
+                
                 // Alternative : return page content without binaries
                 //oneNoteApp.GetHierarchy(page.OneNoteId, HierarchyScope.hsChildren, out var xmlAttach);
 
