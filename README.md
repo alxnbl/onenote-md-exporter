@@ -74,6 +74,7 @@ ___
 | Attachments  | ✅ |
 | Image  | ✅ |
 | Table  | ✅ |
+| Folded paragraphs | ✅ |
 | Image nexted into table | 🔴 Known issue [#48](https://github.com/alxnbl/onenote-md-exporter/issues/48) |
 | Font color| 🔴 |
 | Background color  | 🟠 Highlighted text |
@@ -81,7 +82,6 @@ ___
 | Handwriting  | 🔴 Lost |
 | Text tags (task, star...)  | 🔴 Lost |
 | Password protected sections | 🟠 Lost unless unlocked before export |
-| Folded paragraphs | 🔴 Lost |
 | Notebook internal link | 🔴 onenote:// url |
 
 # Technical characteristics

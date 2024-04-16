@@ -1,10 +1,10 @@
-﻿using Microsoft.Office.Interop.OneNote;
+﻿using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
+using Microsoft.Office.Interop.OneNote;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using alxnbl.OneNoteMdExporter.Infrastructure;
 
 namespace alxnbl.OneNoteMdExporter.Helpers
 {
@@ -27,7 +27,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                     CreationDate = element.GetDate("lastModifiedTime"),
                     LastModificationDate = element.GetDate("lastModifiedTime")
                 };
-            }).ToList();
+            }).Where(element => element.Title != TemporaryNotebook.Title).ToList();
         }
 
         public static DateTime GetDate(this XElement element, string attributeName)
@@ -47,37 +47,29 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                 OneNoteId = element.Attribute("ID")?.Value,
                 OneNotePath = element.Attribute("path")?.Value,
                 CreationDate = element.GetDate("lastModifiedTime"),
-                LastModificationDate = element.GetDate("lastModifiedTime")
+                LastModificationDate = element.GetDate("lastModifiedTime"),
+                IsSectionGroup = element.Name.LocalName switch
+                {
+                    "SectionGroup" => true,
+                    "Section" => false,
+                    _ => throw new NotImplementedException(),
+                }
             };
-
-            switch (element.Name.LocalName)
-            {
-                case "SectionGroup":
-                    section.IsSectionGroup = true;
-                    break;
-                case "Section":
-                    section.IsSectionGroup = false;
-                    break;
-                default:
-                    throw new NotImplementedException();
-
-            }
-
             return section;
         }
 
-        public static Page GetPage(this XElement element, Section parentSection, AppSettings appSettings)
+        public static Page GetPage(this XElement element, Section parentSection)
         {
             var pageId = element.Attribute("ID")?.Value;
 
-            DateTime.TryParse(element.Attribute("dateTime").Value, out var creationDate);
-            DateTime.TryParse(element.Attribute("lastModifiedTime").Value, out var lastModificationDate);
-            int.TryParse(element.Attribute("pageLevel").Value, out var pageLevel);
+            _ = DateTime.TryParse(element.Attribute("dateTime").Value, out var creationDate);
+            _ = DateTime.TryParse(element.Attribute("lastModifiedTime").Value, out var lastModificationDate);
+            _ = int.TryParse(element.Attribute("pageLevel").Value, out var pageLevel);
 
             var title = element.Attribute("name").Value;
 
-            // Limit title max size, especilay for notes with no title where the 1st paragraphe is returned as a title
-            if (title.Length > appSettings.PageTitleMaxLength)
+            // Limit title max size, especially for notes with no title where the 1st paragraph is returned as a title
+            if (title.Length > AppSettings.PageTitleMaxLength)
                 title = new string(title.Take(50).ToArray()) + "...";
 
             var page = new Page(parentSection)
@@ -133,7 +125,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
         /// </summary>
         /// <param name="section"></param>
         /// <returns>List of pages</returns>
-        public static IList<Page> FillSectionPages(this Application oneNoteApp, Section section, AppSettings appSettings)
+        public static IList<Page> FillSectionPages(this Application oneNoteApp, Section section)
         {
             oneNoteApp.GetHierarchy(section.OneNoteId, HierarchyScope.hsPages, out var xmlStr);
             var xmlSection = XDocument.Parse(xmlStr).Root;
@@ -142,7 +134,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             var xmlPages = xmlSection.Descendants(ns + "Page")
                 .Where(e => e.Attribute("isRecycleBin") == null && e.Attribute("isDeletedPages") == null);
 
-            var childPages = xmlPages.Select(xmlP => xmlP.GetPage(section, appSettings)).ToList();
+            var childPages = xmlPages.Select(xmlP => xmlP.GetPage(section)).ToList();
 
             Page pageL1Cursor = null;
             Page pageL2Cursor = null;
@@ -167,46 +159,10 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                     page.SetParentPage(pageL2Cursor ?? pageL1Cursor); // If page level 3 under a page level 1
                 }
 
-                // As we don't use binary data (base64-encoded images embeded into XML) we can use piBasic or piFileType here to save memory
-                oneNoteApp.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piBasic);
-                
-                // Alternative : return page content without binaries
-                //oneNoteApp.GetHierarchy(page.OneNoteId, HierarchyScope.hsChildren, out var xmlAttach);
-
-                var xmlPageContent = XDocument.Parse(xmlPageContentStr).Root;
-
-                var pageTitleOE = xmlPageContent.Descendants(ns + "Title")?.FirstOrDefault()?.Descendants(ns + "OE")?.FirstOrDefault();
-                if (pageTitleOE != null)
-                {
-                    page.Author = pageTitleOE.Attribute("author")?.Value ?? "unknown";
-                }
-
                 section.Childs.Add(page);
-
-                ProcessPageAttachments(ns, page, xmlPageContent);
             }
-
 
             return childPages;
-        }
-
-        private static void ProcessPageAttachments(XNamespace ns, Page page, XElement xmlPageContent)
-        {
-            foreach (var xmlAttachment in xmlPageContent.Descendants(ns + "InsertedFile").Concat(xmlPageContent.Descendants(ns + "MediaFile")))
-            {
-                var fileAttachment = new Attachement(page)
-                {
-                    ActualSourceFilePath = xmlAttachment.Attribute("pathCache")?.Value,
-                    OriginalUserFilePath = xmlAttachment.Attribute("pathSource")?.Value,
-                    OneNotePreferredFileName = xmlAttachment.Attribute("preferredName")?.Value,
-                    Type = AttachementType.File
-                };
-
-                if (fileAttachment.ActualSourceFilePath != null)
-                {
-                    page.Attachements.Add(fileAttachment);
-                }
-            }
         }
     }
 }

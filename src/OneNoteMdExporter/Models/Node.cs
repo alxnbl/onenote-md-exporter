@@ -6,15 +6,15 @@ using System.Linq;
 
 namespace alxnbl.OneNoteMdExporter.Models
 {
-    public class Node
+    public class Node(Node parent)
     {
         public string Title { get; set; }
 
-        public Node Parent { get; internal set; }
+        public Node Parent { get; internal set; } = parent;
 
-        public List<Node> Childs { get; set; } = new List<Node>();
+        public List<Node> Childs { get; set; } = [];
 
-        public string Id { get; }
+        public string Id { get; } = Guid.NewGuid().ToString().Replace("-", string.Empty);
 
         public string OneNoteId { get; set; }
 
@@ -23,12 +23,6 @@ namespace alxnbl.OneNoteMdExporter.Models
         public DateTime LastModificationDate { get; set; }
 
         public string OneNotePath { get; set; }
-
-        public Node(Node parent)
-        {
-            Parent = parent;
-            Id = Guid.NewGuid().ToString().Replace("-", string.Empty);
-        }
 
         public void ReplaceParent(Node newParentNode)
         {
@@ -46,8 +40,9 @@ namespace alxnbl.OneNoteMdExporter.Models
                 return res;
             }
             else
-                return new List<Node> { this };
+                return [this];
         }
+
         public string GetPath(int pageTitleMaxLength)
         {
             if (Parent == null)
@@ -71,7 +66,6 @@ namespace alxnbl.OneNoteMdExporter.Models
             else
                 return Parent.GetNotebook();
         }
-
 
         public Notebook GetNotebook()
             => GetNotebookRootnode() is Notebook notebook ? notebook : null;

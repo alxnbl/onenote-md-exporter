@@ -1,7 +1,6 @@
 ﻿using alxnbl.OneNoteMdExporter.Helpers;
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
-using Microsoft.Office.Interop.OneNote;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -16,10 +15,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
     /// </summary>
     public class JoplinExportService : ExportServiceBase
     {
-        private string GetNoteBookFolderRoot(Node node)
+        protected override string ExportFormatCode { get; } = "joplin-raw-dir";
+
+        private static string GetNoteBookFolderRoot(Node node)
             => Path.Combine(node.GetNotebook().ExportFolder, node.GetNotebook().GetNotebookPath());
+        
         protected override string GetResourceFolderPath(Page node)
-            => Path.Combine(GetNoteBookFolderRoot(node), _appSettings.ResourceFolderName);
+            => Path.Combine(GetNoteBookFolderRoot(node), AppSettings.ResourceFolderName);
 
         protected override string GetPageMdFilePath(Page page)
             => Path.Combine(GetNoteBookFolderRoot(page), page.Id + ".md");
@@ -30,13 +32,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="page"></param>
         /// <param name="attachId">Id of the attachment</param>
-        /// <param name="oneNoteFilePath">Original filepath of the file in OneNote</param>
+        /// <param name="oneNoteFilePath">Original file path of the file in OneNote</param>
         /// <returns></returns>
-        protected override string GetAttachmentFilePath(Attachement attachement)
-            => Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.FriendlyFileName));
+        protected override string GetAttachmentFilePath(Attachement attachment)
+            => Path.Combine(GetResourceFolderPath(attachment.ParentPage), attachment.Id + Path.GetExtension(attachment.FriendlyFileName));
 
-        protected override string GetAttachmentMdReference(Attachement attachement)
-            => $":/{attachement.Id}";
+        protected override string GetAttachmentMdReference(Attachement attachment)
+            => $":/{attachment.Id}";
 
         /// <summary>
         /// Path of the joplin md file created in the export folder
@@ -44,17 +46,11 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="page"></param>
         /// <param name="attachId"></param>
         /// <returns></returns>
-        private string GetJoplinAttachmentMdFilePath(Page page, string attachId)
-
+        private static string GetJoplinAttachmentMdFilePath(Page page, string attachId)
             => Path.Combine(GetNoteBookFolderRoot(page), attachId + ".md");
 
-        private string GetSectionMdFilePath(Node section)
+        private static string GetSectionMdFilePath(Node section)
             => Path.Combine(GetNoteBookFolderRoot(section), $"{section.Id}.md");
-
-        public JoplinExportService(AppSettings appSettings, Application oneNoteApp, ConverterService converterService) : base(appSettings, oneNoteApp, converterService)
-        {
-            _exportFormatCode = "joplin-raw-dir";
-        }
 
         /// <summary>
         /// Export a notebook in Joplin folder format
@@ -69,7 +65,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // Get all sections and section groups, or the one specified in parameter if any
             var sections = notebook.GetSections(true).Where(s => string.IsNullOrEmpty(sectionNameFilter) || s.Title == sectionNameFilter).ToList();
 
-            Log.Information(String.Format(Localizer.GetString("FoundXSectionsAndSecGrp"), sections.Count));
+            Log.Information(string.Format(Localizer.GetString("FoundXSectionsAndSecGrp"), sections.Count));
 
             // Create the joplin root mdfile of the notebook
             WriteSectionNodeMdFile(notebook);
@@ -79,7 +75,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             foreach (Section section in sections)
             {
                 cmpt++;
-                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({cmpt}/{sections.Count()}) :  {section.GetPath(_appSettings.MdMaxFileLength)}\\{section.Title}");
+                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({cmpt}/{sections.Count}) :  {section.GetPath(AppSettings.MdMaxFileLength)}\\{section.Title}");
 
                 WriteSectionNodeMdFile(section);
 
@@ -98,7 +94,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="section"></param>
         /// <param name="pageNameFilter"></param>
-        private void WriteSectionNodeMdFile(Node section)
+        private static void WriteSectionNodeMdFile(Node section)
         {
             // Write Joplin Section Md File (metadata header + empty content)
             var sectionMd = string.Empty;
@@ -118,13 +114,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             Log.Debug($"Start exporting pages of section {section.Title}");
 
             // Get pages of the section and apply provided filter if any
-            var pages = _oneNoteApp.FillSectionPages(section, _appSettings).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+            var pages = OneNoteApp.Instance.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
 
             int cmpt = 0;
 
             foreach (Page page in pages)
             {
-                if (_appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsFolderTree)
+                if (AppSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HierarchyAsFolderTree)
                 {
                     MovePageHierarchyInADedicatedNotebook(page);
                 }
@@ -139,7 +135,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             return result;
         }
 
-        private void MovePageHierarchyInADedicatedNotebook(Page page)
+        private static void MovePageHierarchyInADedicatedNotebook(Page page)
         {
             if (page.ChildPages.Any())
             {
@@ -173,22 +169,23 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             var sb = new StringBuilder();
             sb.Append($"{exportFileName}\n");
 
-            var data = new Dictionary<string, string>();
-
-            data["id"] = attach.Id;
-            data["mime"] = MimeTypes.GetMimeType(exportFilePath);
-            data["filename"] = attach.FriendlyFileName;
-            data["updated_time"] = attach.ParentPage.LastModificationDate.ToString("s");
-            data["user_updated_time"] = attach.ParentPage.LastModificationDate.ToString("s");
-            data["created_time"] = attach.ParentPage.CreationDate.ToString("s");
-            data["user_created_time"] = attach.ParentPage.CreationDate.ToString("s");
-            data["file_extension"] = Path.GetExtension(exportFilePath).Replace(".", "");
-            data["encryption_cipher_text"] = "";
-            data["encryption_applied"] = "0";
-            data["encryption_blob_encrypted"] = "0";
-            data["size"] = new FileInfo(exportFilePath).Length.ToString();
-            data["is_shared"] = "0";
-            data["type_"] = "4";
+            var data = new Dictionary<string, string>
+            {
+                ["id"] = attach.Id,
+                ["mime"] = MimeTypes.GetMimeType(exportFilePath),
+                ["filename"] = attach.FriendlyFileName,
+                ["updated_time"] = attach.ParentPage.LastModificationDate.ToString("s"),
+                ["user_updated_time"] = attach.ParentPage.LastModificationDate.ToString("s"),
+                ["created_time"] = attach.ParentPage.CreationDate.ToString("s"),
+                ["user_created_time"] = attach.ParentPage.CreationDate.ToString("s"),
+                ["file_extension"] = Path.GetExtension(exportFilePath).Replace(".", ""),
+                ["encryption_cipher_text"] = "",
+                ["encryption_applied"] = "0",
+                ["encryption_blob_encrypted"] = "0",
+                ["size"] = new FileInfo(exportFilePath).Length.ToString(),
+                ["is_shared"] = "0",
+                ["type_"] = "4"
+            };
 
             foreach (var metadata in data)
             {
@@ -198,11 +195,11 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             return sb.ToString();
         }
 
-        private void InsertJoplinNodeMetadataFooter(Node node, ref string mdFileContent)
+        private static void InsertJoplinNodeMetadataFooter(Node node, ref string mdFileContent)
         {
             var sb = new StringBuilder();
 
-            if(node is Page page && _appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsPageTitlePrefix)
+            if (node is Page page && AppSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HierarchyAsPageTitlePrefix)
             {
                 sb.Append($"{page.TitleWithPageLevelTabulation}{Environment.NewLine}{Environment.NewLine}");
             }
@@ -213,18 +210,19 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             sb.Append($"{mdFileContent}{Environment.NewLine}");
 
-            var data = new Dictionary<string, string>();
+            var data = new Dictionary<string, string>
+            {
+                ["id"] = node.Id,
+                ["parent_id"] = node.Parent?.Id ?? "",
+                ["is_shared"] = "0",
+                ["encryption_applied"] = "0",
+                ["encryption_cipher_text"] = "",
 
-            data["id"] = node.Id;
-            data["parent_id"] = node.Parent?.Id ?? "";
-            data["is_shared"] = "0";
-            data["encryption_applied"] = "0";
-            data["encryption_cipher_text"] = "";
-
-            data["updated_time"] = node.LastModificationDate.ToString("s");
-            data["user_updated_time"] = node.LastModificationDate.ToString("s");
-            data["created_time"] = node.CreationDate.ToString("s");
-            data["user_created_time"] = node.CreationDate.ToString("s");
+                ["updated_time"] = node.LastModificationDate.ToString("s"),
+                ["user_updated_time"] = node.LastModificationDate.ToString("s"),
+                ["created_time"] = node.CreationDate.ToString("s"),
+                ["user_created_time"] = node.CreationDate.ToString("s")
+            };
 
 
             if (node is Page page2)
@@ -272,13 +270,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             File.WriteAllText(GetPageMdFilePath(page), pageMd);
         }
 
-        protected override void FinalizeExportPageAttachemnts(Page page, Attachement attachment)
+        protected override void FinalizeExportPageAttachments(Page page, Attachement attachment)
         {
             // Create joplin md file for the attachment
             File.WriteAllText(GetJoplinAttachmentMdFilePath(page, attachment.Id), GetJoplinAttachmentMetadata(attachment));
         }
 
-        protected override void PreparePageExport(Page page)
+        protected override void PrepareFolders(Page page)
         {
             return; // nothing to prepare
         }
@@ -287,6 +285,5 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             return md;
         }
-
     }
 }

@@ -1,8 +1,8 @@
 # Add a new Export setting
 
 - Add the setting in [AppSettings.cs](/src/OneNoteMdExporter/Infrastructure/AppSettings.cs) with a description
-- Add the setting in [appsettings.json](/src/OneNoteMdExporter/appsettings.json) with a description
-- Use your settings in ExportServiceBase.cs / JoplinExportService or MdExportService using the `_appSettings` field
+- Add the setting in [appSettings.json](/src/OneNoteMdExporter/appSettings.json) with a description
+- Use your settings in ExportServiceBase.cs / JoplinExportService or MdExportService using the `AppSettings` class
 
 # Add a new langage to translations
 

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
 	<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
@@ -81,7 +81,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.json">
+    <None Update="appSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="pandoc\COPYING.rtf">
