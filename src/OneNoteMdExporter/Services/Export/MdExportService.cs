@@ -144,6 +144,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             var serializer = new SerializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .WithTypeConverter(new DateTimeConverter(formats: AppSettings.FrontMatterDateFormat, kind: DateTimeKind.Local))
                 .Build();
             var headerYaml = serializer.Serialize(headerModel);
 

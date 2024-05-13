@@ -21,6 +21,11 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         public static bool AddFrontMatterHeader { get; set; } = true;
 
         /// <summary>
+        /// Front Matter date format https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings
+        /// </summary>
+        public static string FrontMatterDateFormat { get; set; } = "yyyy-MM-ddTHH:mm:ss";
+
+        /// <summary>
         /// Length limit of Section and page name used in file and folder name. Reduce this value to avoid error of max file system file path
         /// </summary>
         public static int MdMaxFileLength { get; set; } = 50;
