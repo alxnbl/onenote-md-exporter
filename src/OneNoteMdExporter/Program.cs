@@ -2,15 +2,15 @@
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
 using CommandLine;
-using OneNote = Microsoft.Office.Interop.OneNote;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Diagnostics;
+using System.Threading;
 
 namespace alxnbl.OneNoteMdExporter
 {
@@ -26,39 +26,42 @@ namespace alxnbl.OneNoteMdExporter
             [Option('f', "format", Required = false, HelpText = "The format of export : 1 for Markdown folder ; 2 for Joplin folder")]
             public string ExportFormat { get; set; }
 
-            [Option('s', "section", Required = false, HelpText = "The name of the section to export. Apply only if notebook parameter used.")]
+            [Option('s', "section", Required = false, HelpText = "The name of the section to export, apply only if notebook parameter used")]
             public string SectionName { get; set; }
 
-            [Option('p', "page", Required = false, HelpText = "The name of the section page to export. Apply only if section parameter used.")]
+            [Option('p', "page", Required = false, HelpText = "The name of the section page to export, apply only if section parameter used")]
             public string PageName { get; set; }
 
             [Option("no-input", Required = false, HelpText = "Do not request user input")]
             public bool NoInput { get; set; }
 
-            [Option("all-notebooks", Required = false, HelpText = "Exports all notebooks, if specifed with --notebook, notebook name is ignored.")]
+            [Option("all-notebooks", Required = false, HelpText = "Exports all notebooks, if specified with --notebook, notebook name is ignored")]
             public bool AllNotebooks { get; set; }
 
-            [Option("debug", Required = false, HelpText = "Debug mode.")]
+            [Option("debug", Required = false, HelpText = "Debug mode")]
             public bool Debug { get; set; }
 
-            [Option("ignore-errors", Required = false, HelpText = "Export all notebook event in case of error.")]
+            [Option("ignore-errors", Required = false, HelpText = "Export all notebook event in case of error")]
             public bool IgnoreErrors { get; set; }
         }
 
         public static void Main(params string[] args)
         {
+            // Fix console encoding
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            // Run main app code
             Parser.Default.ParseArguments<Options>(args)
-                   .WithParsed(options => {
+                   .WithParsed(options =>
+                   {
                        if (string.IsNullOrEmpty(options.NotebookName))
                            options.SectionName = string.Empty;
                        if (string.IsNullOrEmpty(options.SectionName))
                            options.PageName = string.Empty;
 
                        RunOptions(options);
-                    });
+                   });
         }
-
-        public static OneNote.Application OneNoteApp;
 
         private static void RunOptions(Options opts)
         {
@@ -66,7 +69,8 @@ namespace alxnbl.OneNoteMdExporter
 
             try
             {
-                OneNoteApp = new OneNote.Application();
+                AppDomain.CurrentDomain.ProcessExit += new EventHandler((_, _) => OneNoteApp.CleanUp());
+                OneNoteApp.RenewInstance();
             }
             catch (Exception)
             {
@@ -101,24 +105,30 @@ namespace alxnbl.OneNoteMdExporter
             else
             {
                 // if all-notebooks specified get all notebooks.
-                notebookToProcess = OneNoteApp.GetNotebooks();
+                notebookToProcess = OneNoteApp.Instance.GetNotebooks();
             }
 
             if (notebookToProcess.Count == 0)
+            {
+                Thread.Sleep(3000);
                 return;
+            }
 
             ExportFormat exportFormat = ExportFormatSelectionForm(opts.ExportFormat);
 
             if (exportFormat == ExportFormat.Undefined)
+            {
+                Thread.Sleep(3000);
                 return;
+            }
 
             if (!opts.NoInput)
                 UpdateSettingsForm();
 
-            var appSettings = AppSettings.LoadAppSettings();
-            appSettings.Debug = opts.Debug;
+            AppSettings.LoadAppSettings();
+            AppSettings.Debug = opts.Debug;
 
-            var exportService = ExportServiceFactory.GetExportService(exportFormat, appSettings, OneNoteApp);
+            var exportService = ExportServiceFactory.GetExportService(exportFormat);
 
             foreach (Notebook notebook in notebookToProcess)
             {
@@ -128,7 +138,7 @@ namespace alxnbl.OneNoteMdExporter
 
                 var result = exportService.ExportNotebook(notebook, opts.SectionName, opts.PageName);
 
-                if(!string.IsNullOrEmpty(result.NoteBookExportErrorMessage))
+                if (!string.IsNullOrEmpty(result.NoteBookExportErrorMessage))
                 {
                     // Unable to finalize notebook export
                     Log.Error(result.NoteBookExportErrorMessage);
@@ -159,6 +169,13 @@ namespace alxnbl.OneNoteMdExporter
                 }
             }
 
+            if (!AppSettings.Debug && !AppSettings.KeepOneNoteTempFiles)
+            {
+                TemporaryNotebook.CleanUp();
+            }
+
+            OneNoteApp.CleanUp();
+
             if (!opts.NoInput)
             {
                 if (notebookToProcess.Count == 1)
@@ -179,7 +196,7 @@ namespace alxnbl.OneNoteMdExporter
             {
                 var process = new Process();
                 process.StartInfo.FileName = "notepad.exe";
-                process.StartInfo.Arguments = Path.GetFullPath("appsettings.json");
+                process.StartInfo.Arguments = Path.GetFullPath("appSettings.json");
                 process.Start();
                 process.WaitForExit();
             }
@@ -198,6 +215,9 @@ namespace alxnbl.OneNoteMdExporter
             Log.Information("-----------------------\n");
 
             Log.Information(Localizer.GetString("WelcomeMessage"));
+            Console.BackgroundColor = ConsoleColor.DarkMagenta;
+            Log.Information(Localizer.GetString("WelcomeMessageWarn"));
+            Console.BackgroundColor = ConsoleColor.Black;
             Log.Information(Localizer.GetString("PressEnter"));
 
 
@@ -218,23 +238,31 @@ namespace alxnbl.OneNoteMdExporter
                 Log.Information("");
             }
 
+            ExportFormat exportFormat;
 
-            if (!Enum.TryParse<ExportFormat>(optsExportFormat, true, out var exportFormat))
+            // Select 1st option by default
+            if (optsExportFormat == "")
+            {
+                exportFormat = ExportFormat.Markdown;
+                Console.CursorTop -= 2;
+                Console.WriteLine("1\n");
+            }
+            else if (!Enum.TryParse(optsExportFormat, true, out exportFormat))
             {
                 Log.Information(Localizer.GetString("BadInput"));
                 return ExportFormat.Undefined;
             }
 
-            Log.Debug($"Format choosen: {exportFormat}");
+            Log.Debug($"Format chosen: {exportFormat}");
 
             return exportFormat;
         }
 
-        private static IList<Notebook> GetNotebookFromName(string notebookName)
+        private static List<Notebook> GetNotebookFromName(string notebookName)
         {
-            var notebook = OneNoteApp.GetNotebooks().Where(n => n.Title == notebookName).ToList(); // can be optimized
+            var notebook = OneNoteApp.Instance.GetNotebooks().Where(n => n.Title == notebookName).ToList(); // can be optimized
 
-            if(notebook.Count == 0)
+            if (notebook.Count == 0)
                 Log.Information(Localizer.GetString("NotebookNameNotFound"), notebookName);
 
             return notebook;
@@ -242,7 +270,7 @@ namespace alxnbl.OneNoteMdExporter
 
         private static IList<Notebook> NotebookSelectionForm()
         {
-            var notebooks = OneNoteApp.GetNotebooks();
+            var notebooks = OneNoteApp.Instance.GetNotebooks();
 
             Log.Information("\n***************************************");
             Log.Information(Localizer.GetString("NotebookFounds"), notebooks.Count);
@@ -258,20 +286,21 @@ namespace alxnbl.OneNoteMdExporter
             }
 
             var input = Console.ReadLine();
-            var inputInt = input.Split(",").Select(s => Int32.TryParse(s, out var notebookNbr) ? notebookNbr : -1).Where(i => i >= 0).ToList();
+            var inputInt = input.Split(",").Select(s => int.TryParse(s, out var notebookNbr) ? notebookNbr : -1).Where(i => i >= 0).ToList();
 
             if (inputInt.Contains(0))
+            {
                 return notebooks;
+            }
             else
             {
                 var notebooksResult = inputInt.Where(i => i <= notebooks.Count).Select(i => notebooks.ElementAt(i - 1)).ToList();
 
-                if (!notebooksResult.Any())
+                if (notebooksResult.Count == 0)
                     Log.Information(Localizer.GetString("NotebookNotFound"));
 
                 return notebooksResult;
             }
-
         }
 
         private static void InitLogger()

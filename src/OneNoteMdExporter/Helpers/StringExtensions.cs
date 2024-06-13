@@ -24,7 +24,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             => reference?.Replace(" ", "_");
 
         public static string Left(this String input, int length)
-         => (input.Length < length) ? input : input.Substring(0, length);
+         => (input.Length < length) ? input : input[..length];
         
     }
 }
