@@ -90,7 +90,8 @@ ___
 * Export page as DocX and translate them in Markdown using PanDoc
 * Offline : no call to Microsoft cloud
 * Based on Office Interop APIs
-* Apply some post-processing based on Regex to correct formatting issues
+* Pre-processing stage of OneNote page XML structure
+* Post-processing stage based on Regex to fix formatting issues
 
 # Licence
 
