@@ -8,39 +8,31 @@ using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.Services
 {
-    public class ConverterService
+    public static class ConverterService
     {
-        private readonly AppSettings _appSettings;
-
-        public ConverterService(AppSettings appSettings)
-        {
-            _appSettings = appSettings;
-        }
-
         /// <summary>
         /// Convert DocX file into MD using PanDoc
         /// </summary>
         /// <param name="page">OneNote  page to convert</param>
         /// <param name="inputFilePath">docx file exported from OneNote page</param>
-        /// <param name="tmpFolderPath">path to the folder container attachements</param>
-        public string ConvertDocxToMd(Page page, string inputFilePath, string tmpFolderPath)
+        /// <param name="tmpFolderPath">path to the folder container attachments</param>
+        public static string ConvertDocxToMd(Page page, string inputFilePath, string tmpFolderPath)
         {
             var tmpDir = Path.Combine(tmpFolderPath, "pandoc");
             if (Directory.Exists(tmpDir))
                 Directory.Delete(tmpDir, true);
             Directory.CreateDirectory(tmpDir);
 
-            var pandocPath = "pandoc\\pandoc.exe";
-
+            var pandocPath = @"pandoc\pandoc.exe";
             if (!File.Exists(pandocPath))
-                throw new Exception("pandoc.exe not found in /pandoc/ subfolder. Have you unzip the pandoc archive ?");
+                pandocPath = "pandoc.exe";
 
-            var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+            var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(AppSettings.MdMaxFileLength) + ".md");
 
-            var arguments = $"\"{Path.GetFullPath(inputFilePath)}\"  " +
-                            $"--to {_appSettings.PanDocMarkdownFormat} " +
+            var arguments = $"\"{Path.GetFullPath(inputFilePath)}\" " +
+                            $"--to {AppSettings.PanDocMarkdownFormat} " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
-                            $"--wrap=none " + // Mandatory to avoid random quote bloc to be added to markdown
+                            $"--wrap=none " + // Mandatory to avoid random quote block to be added to markdown
                             $"--extract-media=\"{tmpDir}\"";
 
             var startInfo = new ProcessStartInfo
@@ -53,21 +45,21 @@ namespace alxnbl.OneNoteMdExporter.Services
                 RedirectStandardError = true
             };
 
-
             Log.Debug($"{page.Id} : Start Pandoc");
 
-            using (Process exeProcess = Process.Start(startInfo))
+            try
             {
+                using Process exeProcess = Process.Start(startInfo);
                 exeProcess.WaitForExit();
 
-                if(exeProcess.ExitCode == 0)
+                if (exeProcess.ExitCode == 0)
                 {
                     Log.Debug($"{page.Id} : Pandoc success");
 
 
-                    if (_appSettings.Debug)
+                    if (AppSettings.Debug)
                         Log.Debug($"Pandoc output: {exeProcess.StandardOutput.ReadToEnd()}");
-                    
+
                     File.Delete(inputFilePath);
 
                     var mdFileContent = File.ReadAllText(mdFilePath);
@@ -82,19 +74,21 @@ namespace alxnbl.OneNoteMdExporter.Services
 
                     throw new Exception("Error during PanDoc execution");
                 }
-
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                throw new Exception(@"pandoc.exe not found in \pandoc\ subfolder. Have you unzip the pandoc archive ?");
             }
         }
 
-
         /// <summary>
-        /// Apply post-convertion to md file
+        /// Apply post-conversion to md file
         /// </summary>
         /// <param name="page">Section page</param>
         /// <param name="mdFileContent"></param>
-        public void PageMdPostConvertion(Page page, ref string mdFileContent)
+        public static void PageMdPostConversion(ref string mdFileContent)
         {
-            if (_appSettings.DeduplicateLinebreaks)
+            if (AppSettings.DeduplicateLinebreaks)
             {
                 mdFileContent = DeduplicateLinebreaks(mdFileContent);
             }
@@ -103,17 +97,17 @@ namespace alxnbl.OneNoteMdExporter.Services
 
             mdFileContent = RemoveUTF8NonBreakingSpace(mdFileContent);
 
-            if (_appSettings.PostProcessingRemoveQuotationBlocks)
+            if (AppSettings.PostProcessingRemoveQuotationBlocks)
             {
                 mdFileContent = RemoveQuotationBlocks(mdFileContent);
             }
 
-            if (_appSettings.MaxTwoLineBreaksInARow)
+            if (AppSettings.MaxTwoLineBreaksInARow)
             {
                 mdFileContent = MaxTwoLineBreaksInARow(mdFileContent);
             }
 
-            if (_appSettings.PostProcessingRemoveOneNoteHeader)
+            if (AppSettings.PostProcessingRemoveOneNoteHeader)
             {
                 mdFileContent = RemoveOneNoteHeader(mdFileContent);
             }
@@ -121,14 +115,14 @@ namespace alxnbl.OneNoteMdExporter.Services
             mdFileContent = InsertMdHighlight(mdFileContent);
         }
 
-        private string RemoveOneNoteHeader(string pageTxt)
+        private static string RemoveOneNoteHeader(string pageTxt)
         {
             var pageTxtModified = Regex.Replace(pageTxt, @"^.+(\n|\r|\r\n){1,2}.+(\n|\r|\r\n){1,2}\d{2}:\d{2}\s+", "");
 
             return pageTxtModified;
         }
 
-        private string RemoveUTF8NonBreakingSpace(string pageTxt)
+        private static string RemoveUTF8NonBreakingSpace(string pageTxt)
         {
             // Max 2 consecutive linebreaks
             var pageTxtModified = Regex.Replace(pageTxt, @"(\xa0|\xc2|\xc2\xa0)", string.Empty);
@@ -136,7 +130,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private string RemoveHtmlCommentBlocks(string pageTxt)
+        private static string RemoveHtmlCommentBlocks(string pageTxt)
         {
             // Pandoc produce <!-- --> tags
             var pageTxtModified = Regex.Replace(pageTxt, @"(\n|\r|\r\n)( )*\<!--( )*--\>( )*", "");
@@ -146,7 +140,7 @@ namespace alxnbl.OneNoteMdExporter.Services
 
         
 
-        private string DeduplicateLinebreaks(string pageTxt)
+        private static string DeduplicateLinebreaks(string pageTxt)
         {
             // PanDoc seems to produce 2 linebreaks characters for each linebreak in original DocX file
             // Replace all pair of linebreak by a single linebreak
@@ -155,7 +149,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private string MaxTwoLineBreaksInARow(string pageTxt)
+        private static string MaxTwoLineBreaksInARow(string pageTxt)
         {
             // Max 2 consecutive linebreaks
             var pageTxtModified = Regex.Replace(pageTxt, @"((\n[ \t]*\n+)|(\r[ \t]*\r+)|(\r\n[ \t]*(\r\n)+))",
@@ -164,7 +158,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private string RemoveQuotationBlocks(string pageTxt)
+        private static string RemoveQuotationBlocks(string pageTxt)
         {
             string regex = @"(\n|\r|\r\n)>(\n|\r|\r\n)";
             var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
@@ -187,7 +181,7 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// </summary>
         /// <param name="pageTxt"></param>
         /// <returns></returns>
-        private string InsertMdHighlight(string pageTxt)
+        private static string InsertMdHighlight(string pageTxt)
         {
             // match and replace each span block of a row
             string regex = @"\<span class=\""mark\""\>(?<text>((?!\</span\>).)*)\</span\>"; // https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word
@@ -199,5 +193,4 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
     }
-
 }

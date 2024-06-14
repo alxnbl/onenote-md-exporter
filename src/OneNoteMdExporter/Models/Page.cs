@@ -5,21 +5,19 @@ using System.Linq;
 
 namespace alxnbl.OneNoteMdExporter.Models
 {
-    public class Page : Node
+    public class Page(Section parent) : Node(parent)
     {
         public int PageLevel { get; set; }
 
-        private Page _parentPage { get; set; }
-
-        public Page ParentPage { get => _parentPage; }
+        public Page ParentPage { get; private set; }
 
         public void SetParentPage(Page parentPage)
         {
-            _parentPage = parentPage;
+            ParentPage = parentPage;
             parentPage.ChildPages.Add(this);
         }
 
-        public IList<Page> ChildPages { get; set; } = new List<Page>();
+        public IList<Page> ChildPages { get; set; } = [];
 
         /// <summary>
         /// Ordering of the page inside the Section
@@ -36,20 +34,21 @@ namespace alxnbl.OneNoteMdExporter.Models
         public string TitleWithNoInvalidChars(int maxLength)
             => Title.RemoveInvalidFileNameChars().TrimEnd().Left(maxLength); // TrimEnd -> Fix https://github.com/alxnbl/onenote-md-exporter/issues/93
 
-        public IList<Attachement> Attachements { get; set; } = new List<Attachement>();
+        public IList<Attachement> Attachements { get; set; } = [];
         public IList<Attachement> ImageAttachements { get => Attachements.Where(a => a.Type == AttachementType.Image).ToList(); }
         public IList<Attachement> FileAttachements { get => Attachements.Where(a => a.Type == AttachementType.File).ToList(); }
 
         public string Author { get; internal set; }
 
-        public Page(Section parent) : base(parent)
-        {
-        }
-
         /// <summary>
         /// Override page md file path in case of multiple page with the same name
         /// </summary>
         public string OverridePageFilePath { get; set; }
+
+        /// <summary>
+        /// Override page md OneNote ID in case of XML content changed due page preprocessing so we need to store it at temporary OneNote notebook
+        /// </summary>
+        public string OverrideOneNoteId { get; set; }
 
         public string GetPageFileRelativePath(int pageTitleMaxLength)
         {

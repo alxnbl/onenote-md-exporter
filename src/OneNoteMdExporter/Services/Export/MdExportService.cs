@@ -1,12 +1,12 @@
 ﻿using alxnbl.OneNoteMdExporter.Helpers;
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
-using Microsoft.Office.Interop.OneNote;
 using Serilog;
 using System;
 using System.IO;
 using System.Linq;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.Converters;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
@@ -16,31 +16,33 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
     /// </summary>
     public class MdExportService : ExportServiceBase
     {
+        protected override string ExportFormatCode { get; } = "md";
+
         protected override string GetResourceFolderPath(Page page)
         {
-            if (_appSettings.ResourceFolderLocation == ResourceFolderLocationEnum.RootFolder)
-                return Path.Combine(page.GetNotebook().ExportFolder, _appSettings.ResourceFolderName);
+            if (AppSettings.ResourceFolderLocation == ResourceFolderLocationEnum.RootFolder)
+                return Path.Combine(page.GetNotebook().ExportFolder, AppSettings.ResourceFolderName);
             else
-                return Path.Combine(Path.GetDirectoryName(GetPageMdFilePath(page)), _appSettings.ResourceFolderName);
-        } 
+                return Path.Combine(Path.GetDirectoryName(GetPageMdFilePath(page)), AppSettings.ResourceFolderName);
+        }
 
         protected override string GetPageMdFilePath(Page page)
         {
-            if(page.OverridePageFilePath == null)
+            if (page.OverridePageFilePath == null)
             {
-                var defaultPath = Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath(_appSettings.MdMaxFileLength) + ".md");
+                var defaultPath = Path.Combine(page.GetNotebook().ExportFolder, page.GetPageFileRelativePath(AppSettings.MdMaxFileLength) + ".md");
 
-                if (_appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsFolderTree)
+                if (AppSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HierarchyAsFolderTree)
                 {
                     if (page.ParentPage != null)
-                        return Path.Combine(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+                        return Path.Combine(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), page.TitleWithNoInvalidChars(AppSettings.MdMaxFileLength) + ".md");
                     else
                         return defaultPath;
                 }
-                else if (_appSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HiearchyAsPageTitlePrefix)
+                else if (AppSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HierarchyAsPageTitlePrefix)
                 {
                     if (page.ParentPage != null)
-                        return String.Concat(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), _appSettings.PageHierarchyFileNamePrefixSeparator, page.TitleWithNoInvalidChars(_appSettings.MdMaxFileLength) + ".md");
+                        return String.Concat(Path.ChangeExtension(GetPageMdFilePath(page.ParentPage), null), AppSettings.PageHierarchyFileNamePrefixSeparator, page.TitleWithNoInvalidChars(AppSettings.MdMaxFileLength) + ".md");
                     else
                         return defaultPath;
                 }
@@ -53,26 +55,21 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
         }
 
-        protected override string GetAttachmentFilePath(Attachement attachement)
+        protected override string GetAttachmentFilePath(Attachement attachment)
         {
-            if (attachement.OverrideExportFilePath == null)
-                return Path.Combine(GetResourceFolderPath(attachement.ParentPage), attachement.Id + Path.GetExtension(attachement.FriendlyFileName));         
+            if (attachment.OverrideExportFilePath == null)
+                return Path.Combine(GetResourceFolderPath(attachment.ParentPage), attachment.Id + Path.GetExtension(attachment.FriendlyFileName));
             else
-                return attachement.OverrideExportFilePath;
+                return attachment.OverrideExportFilePath;
         }
 
         /// <summary>
-        /// Get relative path from Image's folder to attachement folder
+        /// Get relative path from Image's folder to attachment folder
         /// </summary>
-        /// <param name="attachement"></param>
+        /// <param name="attachment"></param>
         /// <returns></returns>
-        protected override string GetAttachmentMdReference(Attachement attachement)
-            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachement.ParentPage)), GetAttachmentFilePath(attachement)).Replace("\\", "/");
-
-        public MdExportService(AppSettings appSettings, Application oneNoteApp, ConverterService converterService) : base(appSettings, oneNoteApp, converterService)
-        {
-            _exportFormatCode = "md";
-        }
+        protected override string GetAttachmentMdReference(Attachement attachment)
+            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachment.ParentPage)), GetAttachmentFilePath(attachment)).Replace("\\", "/");
 
         public override NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
@@ -87,13 +84,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             int cmptSect = 0;
             foreach (Section section in sections)
             {
-                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({++cmptSect}/{sections.Count()}) :  {section.GetPath(_appSettings.MdMaxFileLength)}\\{section.Title}");
+                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({++cmptSect}/{sections.Count}) :  {section.GetPath(AppSettings.MdMaxFileLength)}\\{section.Title}");
 
                 if (section.IsSectionGroup)
                     throw new InvalidOperationException("Cannot call ExportSection on section group with MdExport");
 
                 // Get pages list
-                var pages = _oneNoteApp.FillSectionPages(section, _appSettings).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+                var pages = OneNoteApp.Instance.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
 
                 int cmptPage = 0;
 
@@ -114,12 +111,12 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             File.WriteAllText(GetPageMdFilePath(page), pageMd);
         }
 
-        protected override void FinalizeExportPageAttachemnts(Page page, Attachement attachment)
+        protected override void FinalizeExportPageAttachments(Page page, Attachement attachment)
         {
             return; // No markdown file generated for attachments
         }
 
-        protected override void PreparePageExport(Page page)
+        protected override void PrepareFolders(Page page)
         {
             var pageDirectory = Path.GetDirectoryName(GetPageMdFilePath(page));
 
@@ -131,13 +128,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             var res = md;
 
-            if (_appSettings.AddFrontMatterHeader)
+            if (AppSettings.AddFrontMatterHeader)
                 res = AddFrontMatterHeader(page, md);
 
             return res;
         }
 
-        private string AddFrontMatterHeader(Page page, string pageMd)
+        private static string AddFrontMatterHeader(Page page, string pageMd)
         {
             var headerModel = new FrontMatterHeader
             {
@@ -148,6 +145,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             var serializer = new SerializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .WithTypeConverter(new DateTimeConverter(formats: AppSettings.FrontMatterDateFormat, kind: DateTimeKind.Local))
                 .Build();
             var headerYaml = serializer.Serialize(headerModel);
 

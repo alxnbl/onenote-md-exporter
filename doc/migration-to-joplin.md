@@ -25,8 +25,8 @@ One of the objectives of this tool it to offer the most simple and lossless solu
 | Password protected sections | 🔴 Lost | 🔴 Lost |
 | Notebook internal link | 🔴 onenote:// url | 🔴 onenote:// url |
 
-(\*1) : setting `ProcessingOfPageHierarchy = HiearchyAsFolderTree` (default)<br />
-(\*2) : setting `ProcessingOfPageHierarchy = HiearchyAsPageTitlePrefix`
+(\*1) : setting `ProcessingOfPageHierarchy = HierarchyAsFolderTree` (default)<br />
+(\*2) : setting `ProcessingOfPageHierarchy = HierarchyAsPageTitlePrefix`
 
 # User guide
 
