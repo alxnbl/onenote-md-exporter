@@ -100,10 +100,6 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// </summary>
         public static bool MaxTwoLineBreaksInARow { get; set; } = true;
 
-        /// <summary>
-        /// OneNote Tag to Emoji mapping
-        /// </summary>
-        public static string[] TagToEmojiMap { get; set; }
 
         /*
          * Developer Settings
