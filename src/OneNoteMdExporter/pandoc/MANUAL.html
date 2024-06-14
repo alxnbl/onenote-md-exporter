@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="John MacFarlane" />
-  <meta name="dcterms.date" content="2023-09-08" />
+  <meta name="dcterms.date" content="2024-05-11" />
   <title>Pandoc User’s Guide</title>
   <style>
     html {
@@ -181,7 +181,7 @@
     }
     @media print {
     pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
     }
     pre.numberSource code
       { counter-reset: source-line 0; }
@@ -233,15 +233,12 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
 </head>
 <body>
 <header id="title-block-header">
 <h1 class="title">Pandoc User’s Guide</h1>
 <p class="author">John MacFarlane</p>
-<p class="date">September 08, 2023</p>
+<p class="date">May 11, 2024</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -686,10 +683,12 @@ href="https://ctan.org/pkg/listings"><code>listings</code></a> (if the
 <code>--listings</code> option is used), <a
 href="https://ctan.org/pkg/fancyvrb"><code>fancyvrb</code></a>, <a
 href="https://ctan.org/pkg/longtable"><code>longtable</code></a>, <a
-href="https://ctan.org/pkg/booktabs"><code>booktabs</code></a>, <a
+href="https://ctan.org/pkg/booktabs"><code>booktabs</code></a>,
+[<code>multirow</code>] (if the document contains a table with cells
+that cross multiple rows), <a
 href="https://ctan.org/pkg/graphicx"><code>graphicx</code></a> (if the
 document contains images), <a
-href="https://ctan.org/pkg/hyperref"><code>hyperref</code></a>, <a
+href="https://ctan.org/pkg/bookmark"><code>bookmark</code></a>, <a
 href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, <a
 href="https://ctan.org/pkg/soul"><code>soul</code></a>, <a
 href="https://ctan.org/pkg/geometry"><code>geometry</code></a> (with the
@@ -698,12 +697,15 @@ href="https://ctan.org/pkg/setspace"><code>setspace</code></a> (with
 <code>linestretch</code>), and <a
 href="https://ctan.org/pkg/babel"><code>babel</code></a> (with
 <code>lang</code>). If <code>CJKmainfont</code> is set, <a
-href="https://ctan.org/pkg/xecjk"><code>xeCJK</code></a> is needed. The
+href="https://ctan.org/pkg/xecjk"><code>xeCJK</code></a> is needed. <a
+href="https://ctan.org/pkg/framed"><code>framed</code></a> is required
+if code is highlighted in a scheme that use a colored background. The
 use of <code>xelatex</code> or <code>lualatex</code> as the PDF engine
 requires <a
 href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.
 <code>lualatex</code> uses <a
-href="https://ctan.org/pkg/selnolig"><code>selnolig</code></a>.
+href="https://ctan.org/pkg/selnolig"><code>selnolig</code></a> and <a
+href="https://ctan.org/pkg/lua-ul"><code>lua-ul</code></a>.
 <code>xelatex</code> uses <a
 href="https://ctan.org/pkg/bidi"><code>bidi</code></a> (with the
 <code>dir</code> variable set). If the <code>mathspec</code> variable is
@@ -731,9 +733,7 @@ better spacing adjustments), <a
 href="https://ctan.org/pkg/parskip"><code>parskip</code></a> (for better
 inter-paragraph spaces), <a
 href="https://ctan.org/pkg/xurl"><code>xurl</code></a> (for better line
-breaks in URLs), <a
-href="https://ctan.org/pkg/bookmark"><code>bookmark</code></a> (for
-better PDF bookmarks), and <a
+breaks in URLs), and <a
 href="https://ctan.org/pkg/footnotehyper"><code>footnotehyper</code></a>
 or <a href="https://ctan.org/pkg/footnote"><code>footnote</code></a> (to
 allow footnotes in tables).</p>
@@ -759,6 +759,9 @@ when requesting a document from a URL:</p>
 href="https://ctan.org/pkg/bibtex">BibTeX</a> bibliography)</li>
 <li><code>biblatex</code> (<a
 href="https://ctan.org/pkg/biblatex">BibLaTeX</a> bibliography)</li>
+<li><code>bits</code> (<a
+href="https://jats.nlm.nih.gov/extensions/bits/">BITS</a> XML, alias for
+<code>jats</code>)</li>
 <li><code>commonmark</code> (<a
 href="https://commonmark.org">CommonMark</a> Markdown)</li>
 <li><code>commonmark_x</code> (<a
@@ -774,6 +777,7 @@ href="https://tools.ietf.org/html/rfc4180">CSV</a> table)</li>
 <li><code>tsv</code> (<a
 href="https://www.iana.org/assignments/media-types/text/tab-separated-values">TSV</a>
 table)</li>
+<li><code>djot</code> (<a href="https://djot.net">Djot markup</a>)</li>
 <li><code>docbook</code> (<a
 href="https://docbook.org">DocBook</a>)</li>
 <li><code>docx</code> (<a
@@ -827,7 +831,8 @@ man</a>)</li>
 href="https://amusewiki.org/library/manual">Muse</a>)</li>
 <li><code>native</code> (native Haskell)</li>
 <li><code>odt</code> (<a
-href="https://en.wikipedia.org/wiki/OpenDocument">ODT</a>)</li>
+href="https://en.wikipedia.org/wiki/OpenDocument">OpenOffice text
+document</a>)</li>
 <li><code>opml</code> (<a
 href="http://dev.opml.org/spec2.html">OPML</a>)</li>
 <li><code>org</code> (<a href="https://orgmode.org">Emacs Org
@@ -897,6 +902,7 @@ href="https://www.contextgarden.net/">ConTeXt</a>)</li>
 <li><code>csljson</code> (<a
 href="https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html">CSL
 JSON</a> bibliography)</li>
+<li><code>djot</code> (<a href="https://djot.net">Djot markup</a>)</li>
 <li><code>docbook</code> or <code>docbook4</code> (<a
 href="https://docbook.org">DocBook</a> 4)</li>
 <li><code>docbook5</code> (DocBook 5)</li>
@@ -927,7 +933,7 @@ href="https://www.w3.org/TR/html-polyglot/">polyglot markup</a>)</li>
 <li><code>html4</code> (<a
 href="https://www.w3.org/TR/xhtml1/">XHTML</a> 1.0 Transitional)</li>
 <li><code>icml</code> (<a
-href="https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf">InDesign
+href="https://manualzz.com/doc/9627253/adobe-indesign-cs6-idml-cookbook">InDesign
 ICML</a>)</li>
 <li><code>ipynb</code> (<a
 href="https://nbformat.readthedocs.io/en/latest/">Jupyter
@@ -1158,7 +1164,7 @@ to 1).</p>
 </dd>
 <dt><code>--indented-code-classes=</code><em>CLASSES</em></dt>
 <dd>
-<p>Specify classes to use for indented code blocks–for example,
+<p>Specify classes to use for indented code blocks—for example,
 <code>perl,numberLines</code> or <code>haskell</code>. Multiple classes
 may be separated by spaces or commas.</p>
 </dd>
@@ -1182,9 +1188,6 @@ disambiguate them, and internal links will be adjusted accordingly. For
 example, a header with identifier <code>foo</code> in
 <code>subdir/file1.txt</code> will have its identifier changed to
 <code>subdir__file1.txt__foo</code>.</p>
-<p>In addition, a Div with an identifier based on the filename will be
-added around the file’s content, so that internal links to the filename
-will point to this Div’s identifier.</p>
 </dd>
 <dt><code>-F</code> <em>PROGRAM</em>,
 <code>--filter=</code><em>PROGRAM</em></dt>
@@ -1429,7 +1432,7 @@ not wrap lines at all. With <code>preserve</code>, pandoc will attempt
 to preserve the wrapping from the source document (that is, where there
 are nonsemantic newlines in the source, there will be nonsemantic
 newlines in the output as well). In <code>ipynb</code> output, this
-option affects wrapping of the contents of markdown cells.</p>
+option affects wrapping of the contents of Markdown cells.</p>
 </dd>
 <dt><code>--columns=</code><em>NUMBER</em></dt>
 <dd>
@@ -1544,7 +1547,12 @@ directory and the <code>test</code> subdirectory, in that order. This
 option can be used repeatedly. Search path components that come later on
 the command line will be searched before those that come earlier, so
 <code>--resource-path foo:bar --resource-path baz:bim</code> is
-equivalent to <code>--resource-path baz:bim:foo:bar</code>.</p>
+equivalent to <code>--resource-path baz:bim:foo:bar</code>. Note that
+this option only has an effect when pandoc itself needs to find an image
+(e.g., in producing a PDF or docx, or when
+<code>--embed-resources</code> is used.) It will not cause image paths
+to be rewritten in other cases (e.g., when pandoc is generating LaTeX or
+HTML).</p>
 </dd>
 <dt><code>--request-header=</code><em>NAME</em><code>:</code><em>VAL</em></dt>
 <dd>
@@ -1690,16 +1698,16 @@ The default is for lists to be displayed all at once.</p>
 <dt><code>--slide-level=</code><em>NUMBER</em></dt>
 <dd>
 <p>Specifies that headings with the specified level create slides (for
-<code>beamer</code>, <code>s5</code>, <code>slidy</code>,
-<code>slideous</code>, <code>dzslides</code>). Headings above this level
-in the hierarchy are used to divide the slide show into sections;
-headings below this level create subheads within a slide. Valid values
-are 0-6. If a slide level of 0 is specified, slides will not be split
-automatically on headings, and horizontal rules must be used to indicate
-slide boundaries. If a slide level is not specified explicitly, the
-slide level will be set automatically based on the contents of the
-document; see <a href="#structuring-the-slide-show">Structuring the
-slide show</a>.</p>
+<code>beamer</code>, <code>revealjs</code>, <code>pptx</code>,
+<code>s5</code>, <code>slidy</code>, <code>slideous</code>,
+<code>dzslides</code>). Headings above this level in the hierarchy are
+used to divide the slide show into sections; headings below this level
+create subheads within a slide. Valid values are 0-6. If a slide level
+of 0 is specified, slides will not be split automatically on headings,
+and horizontal rules must be used to indicate slide boundaries. If a
+slide level is not specified explicitly, the slide level will be set
+automatically based on the contents of the document; see <a
+href="#structuring-the-slide-show">Structuring the slide show</a>.</p>
 </dd>
 <dt><code>--section-divs[=true|false]</code></dt>
 <dd>
@@ -1789,7 +1797,8 @@ this file other than modifying the styles used by pandoc:</p>
 <li>Heading 7</li>
 <li>Heading 8</li>
 <li>Heading 9</li>
-<li>Block Text</li>
+<li>Block Text [for block quotes]</li>
+<li>Footnote Block Text [for block quotes in footnotes]</li>
 <li>Source Code</li>
 <li>Footnote Text</li>
 <li>Definition Term</li>
@@ -2487,14 +2496,14 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb54-1"><a href=
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">file-scope</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><pre><code>--filter pandoc-citeproc \
+<td style="text-align: left;"><pre><code>--citeproc \
  --lua-filter count-words.lua \
  --filter special.lua
 
 </code></pre></td>
 <td style="text-align: left;"><div class="sourceCode" id="cb58"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> pandoc-citeproc</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> citeproc</span></span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> count-words.lua</span></span>
 <span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">type</span><span class="kw">:</span><span class="at"> json</span></span>
 <span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> special.lua</span></span></code></pre></div></td>
@@ -2879,25 +2888,19 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb175-1"><a href
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb177-1"><a href="#cb177-1" aria-hidden="true" tabindex="-1"></a><span class="fu">citeproc</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><pre><code>--bibliography logic.bib
-</code></pre></td>
+<td style="text-align: left;"><pre><code>--bibliography logic.bib</code></pre></td>
 <td style="text-align: left;"><div class="sourceCode" id="cb179"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb179-1"><a href="#cb179-1" aria-hidden="true" tabindex="-1"></a><span class="fu">metadata</span><span class="kw">:</span></span>
-<span id="cb179-2"><a href="#cb179-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">bibliography</span><span class="kw">:</span><span class="at"> logic.bib</span></span></code></pre></div></td>
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb179-1"><a href="#cb179-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bibliography</span><span class="kw">:</span><span class="at"> logic.bib</span></span></code></pre></div></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><pre><code>--csl ieee.csl
-</code></pre></td>
+<td style="text-align: left;"><pre><code>--csl ieee.csl</code></pre></td>
 <td style="text-align: left;"><div class="sourceCode" id="cb181"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb181-1"><a href="#cb181-1" aria-hidden="true" tabindex="-1"></a><span class="fu">metadata</span><span class="kw">:</span></span>
-<span id="cb181-2"><a href="#cb181-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">csl</span><span class="kw">:</span><span class="at"> ieee.csl</span></span></code></pre></div></td>
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb181-1"><a href="#cb181-1" aria-hidden="true" tabindex="-1"></a><span class="fu">csl</span><span class="kw">:</span><span class="at"> ieee.csl</span></span></code></pre></div></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><pre><code>--citation-abbreviations ab.json
-</code></pre></td>
+<td style="text-align: left;"><pre><code>--citation-abbreviations ab.json</code></pre></td>
 <td style="text-align: left;"><div class="sourceCode" id="cb183"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb183-1"><a href="#cb183-1" aria-hidden="true" tabindex="-1"></a><span class="fu">metadata</span><span class="kw">:</span></span>
-<span id="cb183-2"><a href="#cb183-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">citation-abbreviations</span><span class="kw">:</span><span class="at"> ab.json</span></span></code></pre></div></td>
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb183-1"><a href="#cb183-1" aria-hidden="true" tabindex="-1"></a><span class="fu">citation-abbreviations</span><span class="kw">:</span><span class="at"> ab.json</span></span></code></pre></div></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><pre><code>--natbib</code></pre></td>
@@ -2917,7 +2920,8 @@ output. If you want to use citeproc to format citations, you should also
 set ‘citeproc: true’.</p>
 <p>If you need control over when the citeproc processing is done
 relative to other filters, you should instead use <code>citeproc</code>
-in the list of <code>filters</code> (see above).</p>
+in the list of <code>filters</code> (see <a
+href="#reader-options-1">Reader options</a>).</p>
 <h2 id="math-rendering-in-html-1">Math rendering in HTML</h2>
 <table style="width:99%;">
 <colgroup>
@@ -3086,8 +3090,22 @@ rendered.</li>
 matched delimiters) and ends with <code>endif</code> (enclosed in
 matched delimiters). It may optionally contain an <code>else</code>
 (enclosed in matched delimiters). The <code>if</code> section is used if
-<code>variable</code> has a non-empty value, otherwise the
-<code>else</code> section is used (if present). Examples:</p>
+<code>variable</code> has a true value, otherwise the <code>else</code>
+section is used (if present). The following values count as true:</p>
+<ul>
+<li>any map</li>
+<li>any array containing at least one true value</li>
+<li>any nonempty string</li>
+<li>boolean True</li>
+</ul>
+<p>Note that in YAML metadata (and metadata specified on the command
+line using <code>-M/--metadata</code>), unquoted <code>true</code> and
+<code>false</code> will be interpreted as Boolean values. But a variable
+specified on the command line using <code>-V/--variable</code> will
+always be given a string value. Hence a conditional <code>if(foo)</code>
+will be triggered if you use <code>-V foo=false</code>, but not if you
+use <code>-M foo=false</code>.</p>
+<p>Examples:</p>
 <pre><code>$if(foo)$bar$endif$
 
 $if(foo)$
@@ -3592,6 +3610,10 @@ options for LaTeX beamer themes (a list).
 <dd>
 image for title slide
 </dd>
+<dt><code>titlegraphicoptions</code></dt>
+<dd>
+options for title slide image
+</dd>
 </dl>
 <h3 id="variables-for-powerpoint">Variables for PowerPoint</h3>
 <p>These variables control the visual aspects of a slide show that are
@@ -3713,6 +3735,11 @@ or <code>numbersections</code> variable)
 <dd>
 produce an article from Beamer slides
 </dd>
+<dt><code>handout</code></dt>
+<dd>
+produce a handout version of Beamer slides (with overlays condensed into
+single slides)
+</dd>
 </dl>
 <h4 id="fonts">Fonts</h4>
 <dl>
@@ -3779,6 +3806,20 @@ mainfontoptions:
 - Numbers=Lowercase
 - Numbers=Proportional
 ...</code></pre>
+</dd>
+<dt><code>mainfontfallback</code>, <code>sansfontfallback</code>,
+<code>monofontfallback</code></dt>
+<dd>
+<p>fonts to try if a glyph isn’t found in <code>mainfont</code>,
+<code>sansfont</code>, or <code>monofont</code> respectively. These are
+lists. The font name must be followed by a colon and optionally a set of
+options, for example:</p>
+<pre><code>---
+mainfontfallback:
+  - &quot;FreeSans:&quot;
+  - &quot;NotoColorEmoji:mode=harf&quot;
+...</code></pre>
+<p>Font fallbacks currently only work with <code>lualatex</code>.</p>
 </dd>
 <dt><code>babelfonts</code></dt>
 <dd>
@@ -3928,6 +3969,13 @@ include list of figures, list of tables
 font families: take the name of any system font (see <a
 href="https://wiki.contextgarden.net/Font_Switching">ConTeXt Font
 Switching</a>)
+</dd>
+<dt><code>mainfontfallback</code>, <code>sansfontfallback</code>,
+<code>monofontfallback</code></dt>
+<dd>
+list of fonts to try, in order, if a glyph is not found in the main
+font. Use <code>\definefallbackfamily</code>-compatible font name
+syntax. Emoji fonts are unsupported.
 </dd>
 <dt><code>margin-left</code>, <code>margin-right</code>,
 <code>margin-top</code>, <code>margin-bottom</code></dt>
@@ -4180,7 +4228,9 @@ non-null value if <code>--toc/--table-of-contents</code> was specified
 <dt><code>toc-title</code></dt>
 <dd>
 title of table of contents (works only with EPUB, HTML, revealjs,
-opendocument, odt, docx, pptx, beamer, LaTeX)
+opendocument, odt, docx, pptx, beamer, LaTeX). Note that in docx and
+pptx a custom <code>toc-title</code> will be picked up from metadata,
+but cannot be set as a variable.
 </dd>
 </dl>
 <h1 id="extensions">Extensions</h1>
@@ -4192,13 +4242,13 @@ format name and disabled by adding <code>-EXTENSION</code>. For example,
 footnotes enabled, while
 <code>--from markdown-footnotes-pipe_tables</code> is pandoc’s Markdown
 without footnotes or pipe tables.</p>
-<p>The markdown reader and writer make by far the most use of
+<p>The Markdown reader and writer make by far the most use of
 extensions. Extensions only used by them are therefore covered in the
 section <a href="#pandocs-markdown">Pandoc’s Markdown</a> below (see <a
 href="#markdown-variants">Markdown variants</a> for
 <code>commonmark</code> and <code>gfm</code>). In the following,
 extensions that also work for other formats are covered.</p>
-<p>Note that markdown extensions added to the <code>ipynb</code> format
+<p>Note that Markdown extensions added to the <code>ipynb</code> format
 affect Markdown cells in Jupyter notebooks (as do command-line options
 like <code>--markdown-headings</code>).</p>
 <h2 id="typography">Typography</h2>
@@ -4349,6 +4399,7 @@ removed. Emojis are replaced by their names.</p>
 <h2 id="math-input">Math Input</h2>
 <p>The extensions <a
 href="#extension-tex_math_dollars"><code>tex_math_dollars</code></a>, <a
+href="#extension-tex_math_gfm"><code>tex_math_gfm</code></a>, <a
 href="#extension-tex_math_single_backslash"><code>tex_math_single_backslash</code></a>,
 and <a
 href="#extension-tex_math_double_backslash"><code>tex_math_double_backslash</code></a>
@@ -4380,7 +4431,7 @@ be enabled/disabled for the following formats (in addition to
 </dd>
 </dl>
 <p>Note: as applied to <code>ipynb</code>, <code>raw_html</code> and
-<code>raw_tex</code> affect not only raw TeX in markdown cells, but data
+<code>raw_tex</code> affect not only raw TeX in Markdown cells, but data
 with mime type <code>text/html</code> in output cells. Since the
 <code>ipynb</code> reader attempts to preserve the richest possible
 outputs when several options are given, you will get best results if you
@@ -4466,7 +4517,7 @@ not be picked up by the Haskell compiler.</p>
 <dt>output formats</dt>
 <dd>
 <code>docx</code>, <code>odt</code>, <code>opendocument</code>,
-<code>html</code>
+<code>html</code>, <code>latex</code>
 </dd>
 </dl>
 <h4 id="extension-native_numbering">Extension:
@@ -4535,7 +4586,7 @@ extensions to Emacs Muse markup.</p>
 <p>In the <code>ipynb</code> input format, this causes Markdown cells to
 be included as raw Markdown blocks (allowing lossless round-tripping)
 rather than being parsed. Use this only when you are targeting
-<code>ipynb</code> or a markdown-based output format.</p>
+<code>ipynb</code> or a Markdown-based output format.</p>
 <h4 id="org-citations">Extension: <code>citations</code></h4>
 <p>When the <code>citations</code> extension is enabled in
 <code>org</code>, org-cite and org-ref style citations will be parsed as
@@ -4591,7 +4642,8 @@ easy to read:</p>
 <blockquote>
 <p>A Markdown-formatted document should be publishable as-is, as plain
 text, without looking like it’s been marked up with tags or formatting
-instructions. – <a
+instructions.<br />
+– <a
 href="https://daringfireball.net/projects/markdown/syntax#philosophy">John
 Gruber</a></p>
 </blockquote>
@@ -4872,8 +4924,9 @@ must begin with a space.</p>
   Constable, Jr.
 | 200 Main St.
 | Berkeley, CA 94718</code></pre>
-<p>Inline formatting (such as emphasis) is allowed in the content, but
-not block-level formatting (such as block quotes or lists).</p>
+<p>Inline formatting (such as emphasis) is allowed in the content
+(though it can’t cross line boundaries). Block-level formatting (such as
+block quotes or lists) is not recognized.</p>
 <p>This syntax is borrowed from <a
 href="https://docutils.sourceforge.io/docs/ref/rst/introduction.html">reStructuredText</a>.</p>
 <h2 id="lists">Lists</h2>
@@ -5075,12 +5128,23 @@ document:</p>
 As (@good) illustrates, ...</code></pre>
 <p>The label can be any string of alphanumeric characters, underscores,
 or hyphens.</p>
-<p>Note: continuation paragraphs in example lists must always be
-indented four spaces, regardless of the length of the list marker. That
-is, example lists always behave as if the <code>four_space_rule</code>
-extension is set. This is because example labels tend to be long, and
-indenting content to the first non-space character after the label would
-be awkward.</p>
+<p>Continuation paragraphs in example lists must always be indented four
+spaces, regardless of the length of the list marker. That is, example
+lists always behave as if the <code>four_space_rule</code> extension is
+set. This is because example labels tend to be long, and indenting
+content to the first non-space character after the label would be
+awkward.</p>
+<p>You can repeat an earlier numbered example by re-using its label:</p>
+<pre><code>(@foo) Sample sentence.
+
+Intervening text...
+
+This theory can explain the case we saw earlier (repeated):
+
+(@foo) Sample sentence.</code></pre>
+<p>This only works reliably, though, if the repeated item is in a list
+by itself, because each numbered example list will be numbered
+continuously from its starting number.</p>
 <h3 id="ending-a-list">Ending a list</h3>
 <p>What if you want to put an indented code block after a list?</p>
 <pre><code>-   item one
@@ -5304,7 +5368,7 @@ pear|1.37
 orange|3.09</code></pre>
 <p>The cells of pipe tables cannot contain block elements like
 paragraphs and lists, and cannot span multiple lines. If any line of the
-markdown source is longer than the column width (see
+Markdown source is longer than the column width (see
 <code>--columns</code>), then the table will take up the full text width
 and the cell contents will wrap, with the relative cell widths
 determined by the number of dashes in the line separating the table
@@ -5358,9 +5422,9 @@ So, all of the following are equivalent:</p>
 <p>Title blocks will always be parsed, but they will affect the output
 only when the <code>--standalone</code> (<code>-s</code>) option is
 chosen. In HTML output, titles will appear twice: once in the document
-head – this is the title that will appear at the top of the window in a
-browser – and once at the beginning of the document body. The title in
-the document head can have an optional prefix attached
+head—this is the title that will appear at the top of the window in a
+browser—and once at the beginning of the document body. The title in the
+document head can have an optional prefix attached
 (<code>--title-prefix</code> or <code>-T</code> option). The title in
 the body appears as an H1 element with class “title”, so it can be
 suppressed or reformatted with CSS. If a title prefix is specified with
@@ -5399,7 +5463,7 @@ files:</p>
 <p>Just be sure that the YAML file begins with <code>---</code> and ends
 with <code>---</code> or <code>...</code>. Alternatively, you can use
 the <code>--metadata-file</code> option. Using that approach however,
-you cannot reference content (like footnotes) from the main markdown
+you cannot reference content (like footnotes) from the main Markdown
 input document.</p>
 <p>Metadata will be taken from the fields of the YAML object and added
 to any existing document metadata. Metadata can contain lists and
@@ -5478,7 +5542,7 @@ $endfor$</code></pre>
 using <code>header-includes</code>; however, it is important to mark up
 this content as raw code for a particular output format, using the <a
 href="#extension-raw_attribute"><code>raw_attribute</code>
-extension</a>, or it will be interpreted as markdown. For example:</p>
+extension</a>, or it will be interpreted as Markdown. For example:</p>
 <pre><code>header-includes:
 - |
   ```{=latex}
@@ -5746,8 +5810,9 @@ tags as Markdown. Thus, for example, pandoc will turn</p>
 &lt;/table&gt;</code></pre>
 <p>whereas <code>Markdown.pl</code> will preserve it as is.</p>
 <p>There is one exception to this rule: text between
-<code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>, and
-<code>&lt;textarea&gt;</code> tags is not interpreted as Markdown.</p>
+<code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>,
+<code>&lt;pre&gt;</code>, and <code>&lt;textarea&gt;</code> tags is not
+interpreted as Markdown.</p>
 <p>This departure from original Markdown should make it easier to mix
 Markdown with HTML block elements. For example, one can surround a block
 of Markdown text with <code>&lt;div&gt;</code> tags without preventing
@@ -5996,7 +6061,7 @@ metadata embedded in the image file.</li>
 <h2 id="divs-and-spans">Divs and Spans</h2>
 <p>Using the <code>native_divs</code> and <code>native_spans</code>
 extensions (see <a href="#extension-native_divs">above</a>), HTML syntax
-can be used as part of markdown to create native <code>Div</code> and
+can be used as part of Markdown to create native <code>Div</code> and
 <code>Span</code> elements in the pandoc AST (as opposed to raw HTML).
 However, there is also nicer syntax available:</p>
 <h4 id="extension-fenced_divs">Extension: <code>fenced_divs</code></h4>
@@ -6061,9 +6126,10 @@ belong to the previous footnote.
 This paragraph won&#39;t be part of the note, because it
 isn&#39;t indented.</code></pre>
 <p>The identifiers in footnote references may not contain spaces, tabs,
-or newlines. These identifiers are used only to correlate the footnote
-reference with the note itself; in the output, footnotes will be
-numbered sequentially.</p>
+newlines, or the characters <code>^</code>, <code>[</code>, or
+<code>]</code>. These identifiers are used only to correlate the
+footnote reference with the note itself; in the output, footnotes will
+be numbered sequentially.</p>
 <p>The footnotes themselves need not be placed at the end of the
 document. They may appear anywhere except inside other block elements
 (lists, block quotes, tables, etc.). Each footnote should be separated
@@ -6270,6 +6336,14 @@ Asian wide characters and other characters.</p>
 <h4 id="extension-emoji">Extension: <code>emoji</code></h4>
 <p>Parses textual emojis like <code>:smile:</code> as Unicode
 emoticons.</p>
+<h4 id="extension-tex_math_gfm">Extension:
+<code>tex_math_gfm</code></h4>
+<p>Supports two GitHub-specific formats for math. Inline math:
+<code>$`e=mc^2`$</code>.</p>
+<p>Display math:</p>
+<pre><code>``` math
+e=mc^2
+```</code></pre>
 <h4 id="extension-tex_math_single_backslash">Extension:
 <code>tex_math_single_backslash</code></h4>
 <p>Causes anything between <code>\(</code> and <code>\)</code> to be
@@ -6308,23 +6382,29 @@ enabled, it will take precedence over <code>mmd_title_block</code>.</p>
 <p>Note that the pandoc document model does not support abbreviations,
 so if this extension is enabled, abbreviation keys are simply skipped
 (as opposed to being parsed as paragraphs).</p>
+<h4 id="extension-alerts">Extension: <code>alerts</code></h4>
+<p>Supports <a
+href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub-style
+Markdown alerts</a>, like</p>
+<pre><code>&gt; [!INFO]
+&gt; This is an informational message.</code></pre>
 <h4 id="extension-autolink_bare_uris">Extension:
 <code>autolink_bare_uris</code></h4>
 <p>Makes all absolute URIs into links, even when not surrounded by
 pointy braces <code>&lt;...&gt;</code>.</p>
 <h4 id="extension-mmd_link_attributes">Extension:
 <code>mmd_link_attributes</code></h4>
-<p>Parses multimarkdown style key-value attributes on link and image
+<p>Parses MultiMarkdown-style key-value attributes on link and image
 references. This extension should not be confused with the <a
 href="#extension-link_attributes"><code>link_attributes</code></a>
 extension.</p>
-<pre><code>This is a reference ![image][ref] with multimarkdown attributes.
+<pre><code>This is a reference ![image][ref] with MultiMarkdown attributes.
 
 [ref]: https://path.to/image &quot;Image title&quot; width=20px height=30px
        id=myId class=&quot;myClass1 myClass2&quot;</code></pre>
 <h4 id="extension-mmd_header_identifiers">Extension:
 <code>mmd_header_identifiers</code></h4>
-<p>Parses multimarkdown style heading identifiers (in square brackets,
+<p>Parses MultiMarkdown-style heading identifiers (in square brackets,
 after the heading but before any trailing <code>#</code>s in an ATX
 heading).</p>
 <h4 id="extension-compact_definition_lists">Extension:
@@ -6355,7 +6435,7 @@ surrounding Div or Span element with a <code>data-pos</code>
 attribute.</p>
 <h4 id="extension-short_subsuperscripts">Extension:
 <code>short_subsuperscripts</code></h4>
-<p>Parse multimarkdown style subscripts and superscripts, which start
+<p>Parse MultiMarkdown-style subscripts and superscripts, which start
 with a ‘~’ or ‘^’ character, respectively, and include the alphanumeric
 sequence that follows. For example:</p>
 <pre><code>x^2 = 4</code></pre>
@@ -6363,7 +6443,7 @@ sequence that follows. For example:</p>
 <pre><code>Oxygen is O~2.</code></pre>
 <h4 id="extension-wikilinks_title_after_pipe">Extension:
 <code>wikilinks_title_after_pipe</code></h4>
-<p>Pandoc supports multiple markdown wikilink syntaxes, regardless of
+<p>Pandoc supports multiple Markdown wikilink syntaxes, regardless of
 whether the title is before or after the pipe.</p>
 <p>Using <code>--from=markdown+wikilinks_title_after_pipe</code> results
 in</p>
@@ -6613,7 +6693,7 @@ example:</p>
 }</code></pre>
 <h2 id="citations-in-note-styles">Citations in note styles</h2>
 <p>Pandoc’s citation processing is designed to allow you to move between
-author-date, numerical, and note styles without modifying the markdown
+author-date, numerical, and note styles without modifying the Markdown
 source. When you’re using a note style, avoid inserting footnotes
 manually. Instead, insert citations just as you would in an author-date
 style—for example,</p>
@@ -6718,13 +6798,12 @@ use is deprecated.)</p>
 <code>-u-</code>) may be used to specify options for collation (sorting)
 more precisely. Here are some examples:</p>
 <ul>
-<li><code>zh-u-co-pinyin</code> – Chinese with the Pinyin
-collation.</li>
-<li><code>es-u-co-trad</code> – Spanish with the traditional collation
+<li><code>zh-u-co-pinyin</code>: Chinese with the Pinyin collation.</li>
+<li><code>es-u-co-trad</code>: Spanish with the traditional collation
 (with <code>Ch</code> sorting after <code>C</code>).</li>
-<li><code>fr-u-kb</code> – French with “backwards” accent sorting (with
+<li><code>fr-u-kb</code>: French with “backwards” accent sorting (with
 <code>coté</code> sorting after <code>côte</code>).</li>
-<li><code>en-US-u-kf-upper</code> – English with uppercase letters
+<li><code>en-US-u-kf-upper</code>: English with uppercase letters
 sorting before lower (default is lower before upper).</li>
 </ul>
 </dd>
@@ -7266,6 +7345,38 @@ Either <code>ltr</code> or <code>rtl</code>. Specifies the
 href="http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem"><code>spine</code>
 element</a>.
 </dd>
+<dt><code>accessModes</code></dt>
+<dd>
+An array of strings (<a
+href="https://kb.daisy.org/publishing/docs/metadata/schema.org/index.html">schema</a>).
+Defaults to <code>["textual"]</code>.
+</dd>
+<dt><code>accessModeSufficient</code></dt>
+<dd>
+An array of strings (<a
+href="https://kb.daisy.org/publishing/docs/metadata/schema.org/index.html">schema</a>).
+Defaults to <code>["textual"]</code>.
+</dd>
+<dt><code>accessibilityHazards</code></dt>
+<dd>
+An array of strings (<a
+href="https://kb.daisy.org/publishing/docs/metadata/schema.org/index.html">schema</a>).
+Defaults to <code>["none"]</code>.
+</dd>
+<dt><code>accessibilityFeatures</code></dt>
+<dd>
+<p>An array of strings (<a
+href="https://kb.daisy.org/publishing/docs/metadata/schema.org/index.html">schema</a>).
+Defaults to</p>
+<pre><code>- &quot;alternativeText&quot;
+- &quot;readingOrder&quot;
+- &quot;structuralNavigation&quot;
+- &quot;tableOfContents&quot;</code></pre>
+</dd>
+<dt><code>accessibilitySummary</code></dt>
+<dd>
+A string value.
+</dd>
 <dt><code>ibooks</code></dt>
 <dd>
 <p>iBooks-specific metadata, with the following fields:</p>
@@ -7290,7 +7401,7 @@ attribute</h2>
 corresponds to an EPUB chapter using the <a
 href="http://www.idpf.org/epub/31/spec/epub-contentdocs.html#sec-epub-type-attribute"><code>epub:type</code>
 attribute</a>. For example, to set the attribute to the value
-<code>prologue</code>, use this markdown:</p>
+<code>prologue</code>, use this Markdown:</p>
 <pre><code># My chapter {epub:type=prologue}</code></pre>
 <p>Which will result in:</p>
 <pre><code>&lt;body epub:type=&quot;frontmatter&quot;&gt;
@@ -7565,8 +7676,8 @@ href="#fenced-code-blocks">fenced code blocks</a> that are marked with a
 language name. The Haskell library <a
 href="https://github.com/jgm/skylighting">skylighting</a> is used for
 highlighting. Currently highlighting is supported only for HTML, EPUB,
-Docx, Ms, and LaTeX/PDF output. To see a list of language names that
-pandoc will recognize, type
+Docx, Ms, Man, and LaTeX/PDF output. To see a list of language names
+that pandoc will recognize, type
 <code>pandoc --list-highlight-languages</code>.</p>
 <p>The color scheme can be selected using the
 <code>--highlight-style</code> option. The default color scheme is
@@ -7593,16 +7704,16 @@ of syntax definitions</a>.</p>
 <p>To disable highlighting, use the <code>--no-highlight</code>
 option.</p>
 <h1 id="custom-styles">Custom Styles</h1>
-<p>Custom styles can be used in the docx and ICML formats.</p>
+<p>Custom styles can be used in the docx, odt and ICML formats.</p>
 <h2 id="output">Output</h2>
-<p>By default, pandoc’s docx and ICML output applies a predefined set of
-styles for blocks such as paragraphs and block quotes, and uses largely
-default formatting (italics, bold) for inlines. This will work for most
-purposes, especially alongside a <code>reference.docx</code> file.
-However, if you need to apply your own styles to blocks, or match a
-preexisting set of styles, pandoc allows you to define custom styles for
-blocks and text using <code>div</code>s and <code>span</code>s,
-respectively.</p>
+<p>By default, pandoc’s odt, docx and ICML output applies a predefined
+set of styles for blocks such as paragraphs and block quotes, and uses
+largely default formatting (italics, bold) for inlines. This will work
+for most purposes, especially alongside a <span
+id="option--reference-doc">reference doc</span> file. However, if you
+need to apply your own styles to blocks, or match a preexisting set of
+styles, pandoc allows you to define custom styles for blocks and text
+using <code>div</code>s and <code>span</code>s, respectively.</p>
 <p>If you define a <code>div</code> or <code>span</code> with the
 attribute <code>custom-style</code>, pandoc will apply your specified
 style to the contained elements (with the exception of elements whose
@@ -7610,7 +7721,7 @@ function depends on a style, like headings, code blocks, block quotes,
 or links). So, for example, using the <code>bracketed_spans</code>
 syntax,</p>
 <pre><code>[Get out]{custom-style=&quot;Emphatically&quot;}, he said.</code></pre>
-<p>would produce a docx file with “Get out” styled with character style
+<p>would produce a file with “Get out” styled with character style
 <code>Emphatically</code>. Similarly, using the <code>fenced_divs</code>
 syntax,</p>
 <pre><code>Dickinson starts the poem simply:
@@ -7621,10 +7732,10 @@ syntax,</p>
 :::</code></pre>
 <p>would style the two contained lines with the <code>Poetry</code>
 paragraph style.</p>
-<p>For docx output, styles will be defined in the output file as
-inheriting from normal text, if the styles are not yet in your
-reference.docx. If they are already defined, pandoc will not alter the
-definition.</p>
+<p>Styles will be defined in the output file as inheriting from normal
+text (docx) or Default Paragraph Style (odt), if the styles are not yet
+in your <span id="option--reference-doc">reference doc</span>. If they
+are already defined, pandoc will not alter the definition.</p>
 <p>This feature allows for greatest customization in conjunction with <a
 href="https://pandoc.org/filters.html">pandoc filters</a>. If you want
 all paragraphs after block quotes to be indented, you can write a filter
@@ -7633,8 +7744,8 @@ to the <code>Emphasis</code> character style (perhaps to change their
 color), you can write a filter which will transform all italicized
 inlines to inlines within an <code>Emphasis</code> custom-style
 <code>span</code>.</p>
-<p>For docx output, you don’t need to enable any extensions for custom
-styles to work.</p>
+<p>For docx or odt output, you don’t need to enable any extensions for
+custom styles to work.</p>
 <h2 id="input">Input</h2>
 <p>The docx reader, by default, only reads those styles that it can
 convert into pandoc elements, either by direct conversion or
@@ -7846,7 +7957,7 @@ title="GNU General Public License">GPL</a>, version 2 or greater. This
 software carries no warranty of any kind. (See COPYRIGHT for full
 copyright and warranty notices.) For a full list of contributors, see
 the file AUTHORS.md in the pandoc source code.</p>
-<aside id="footnotes" class="footnotes footnotes-end-of-document"
+<section id="footnotes" class="footnotes footnotes-end-of-document"
 role="doc-endnotes">
 <hr />
 <ol>
@@ -7882,6 +7993,6 @@ we must either disallow lazy wrapping or require a blank line between
 list items.<a href="#fnref4" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 </ol>
-</aside>
+</section>
 </body>
 </html>
