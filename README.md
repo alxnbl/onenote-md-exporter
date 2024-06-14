@@ -3,7 +3,9 @@
 This tool is usefull to :
 * evaluate or migrate to an alternative Knowledge Management Software like Joplin, Obsidian or other softwares based on Markdown format
 * backup your OneNote Notebooks in an interoperable and open file format
-  
+
+The tool is easy to install and use, and generally produces better results than other OneNote export methods.
+
 # Requirements
 
 - Windows >=10
