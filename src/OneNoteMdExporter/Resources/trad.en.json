@@ -19,7 +19,7 @@
   "ErrorDuringNotebookProcessingNbTree": "Error during processing of notebook {0} [{1}]. Can't browse notebook tree. Error message : {2}",
   "EndOfExport": "\nPress any key to exit...",
   "NotebookNameNotFound": "Notebook '{0}' not found. Is it actually open in OneNote ?",
-  "WelcomeMessage": "Before continue, please verify that :\n\n* OneNote and Word of Office suite are correctly installed\n* OneNote is running and the Notebooks to export are opened\n* This tool and OneNote are started with normal priviledges (NOT as an administrator)\n\nKnown limitations:\n* The free application 'One Note For Windows' is not supported\n* Password protected sections are not exported, except if they are unlocked before the export\n* Hand-writting text is not exported\n",
+  "WelcomeMessage": "Before continue, please verify that :\n\n* OneNote and Word of Office suite are correctly installed\n* OneNote is running and the Notebooks to export are opened\n* This tool and OneNote are started with normal priviledges (NOT as an administrator)\n\nKnown limitations:\n* The free application 'One Note For Windows' is not supported\n* Password protected sections are not exported, except if they are unlocked before the export\n* Hand-writing text is not exported\n",
   "WelcomeMessageWarn": "Allways keep a backup of your OneNote notebooks in case you discover later that some data is missing in the export\n",
   "PressEnter": "Press [Enter] to continue...",
   "ExportFolder": "Exports",
