@@ -109,6 +109,13 @@ namespace alxnbl.OneNoteMdExporter.Helpers
             foreach (XElement xmlChildSection in xmlChildSections)
             {
                 Section childSection = xmlChildSection.GetSection(node);
+
+                // OneNote API incorrectly returns "^M" for "+" in section titles XML.
+                childSection.Title = childSection.Title.Replace("^M", "+");
+
+                // OneNote API incorrectly returns "^J" for "," in section titles XML.
+                childSection.Title = childSection.Title.Replace("^J", ",");
+
                 node.Childs.Add(childSection);
 
                 if (childSection.IsSectionGroup)
