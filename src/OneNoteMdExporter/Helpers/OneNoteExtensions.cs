@@ -70,7 +70,7 @@ namespace alxnbl.OneNoteMdExporter.Helpers
 
             // Limit title max size, especially for notes with no title where the 1st paragraph is returned as a title
             if (title.Length > AppSettings.PageTitleMaxLength)
-                title = new string(title.Take(50).ToArray()) + "...";
+                title = new string(title.Take(AppSettings.PageTitleMaxLength).ToArray()) + "...";
 
             var page = new Page(parentSection)
             {
