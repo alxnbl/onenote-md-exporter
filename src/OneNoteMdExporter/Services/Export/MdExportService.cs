@@ -5,6 +5,7 @@ using Serilog;
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.Converters;
 using YamlDotNet.Serialization.NamingConventions;
@@ -80,6 +81,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             Log.Information(String.Format(Localizer.GetString("FoundXSections"), sections.Count));
 
+            // Phase 1: Build complete tree and collect metadata
+            Log.Information("Phase 1: Building notebook tree and collecting metadata...");
+            var allPages = new List<Page>();
+            
             // Export each section
             int cmptSect = 0;
             foreach (Section section in sections)
@@ -89,18 +94,20 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 if (section.IsSectionGroup)
                     throw new InvalidOperationException("Cannot call ExportSection on section group with MdExport");
 
-                // Get pages list
+                // Get pages list and collect metadata
                 var pages = OneNoteApp.Instance.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+                allPages.AddRange(pages);
+            }
 
-                int cmptPage = 0;
+            // Phase 2: Export content and convert to markdown
+            Log.Information("Phase 2: Exporting content and converting to markdown...");
+            int cmptPage = 0;
+            foreach (Page page in allPages)
+            {
+                Log.Information($"   {Localizer.GetString("Page")} {++cmptPage}/{allPages.Count} : {page.TitleWithPageLevelTabulation}");
+                var success = ExportPage(page);
 
-                foreach (Page page in pages)
-                {
-                    Log.Information($"   {Localizer.GetString("Page")} {++cmptPage}/{pages.Count} : {page.TitleWithPageLevelTabulation}");
-                    var success = ExportPage(page);
-
-                    if (!success) result.PagesOnError++;
-                }
+                if (!success) result.PagesOnError++;
             }
 
             return result;
