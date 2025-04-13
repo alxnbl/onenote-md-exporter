@@ -53,6 +53,11 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
     Page content
     ```
   * `PanDocMarkdownFormat` : choose the markdown syntax to use among [those supported by pandoc](https://pandoc.org/MANUAL.html#general-options). Use *GitHub flavor* by default.
+  * `OneNoteLinksHandling` : 
+    * KeepOriginal: Keep the original OneNote link format (onenote://...)
+    * ConvertToMarkdown: Convert OneNote links to markdown format "[text](url)" (suggested for Joplin)
+    * ConvertToWikilink (default): Convert OneNote links to wikilink format "[[Page Title|Display Text]]" (suggested for Obsidian). It does not support links to section or section groups. Links to specific objects inside a page are not supported and will fall back to a link to the whole page.
+    * Remove: Remove all OneNote links from the exported content but keep the text  
 
 ## Joplin Raw Directory
 
