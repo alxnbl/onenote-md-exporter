@@ -71,7 +71,7 @@ Command line is supported, run `OneNoteMdExporter.exe --help` for instructions.
 | Hierarchy of sections | ✅ Folder hierarchy | ✅ Notebook hierarchy |
 | Page ordering inside a section | 🔴 Ordering based on md filename | ✅ |
 | Page hierarchy | ✅ Page prefix or folder prefix | ✅ |
-
+| Notebook internal link (onenote://) | ✅ Links to pages (no links to section or anchors) | 🔴 Not tested
 
 ___
 ___
@@ -89,7 +89,6 @@ ___
 | Handwriting  | 🔴 Lost |
 | Text tags (task, star...)  | 🔴 Lost |
 | Password protected sections | 🟠 Lost unless unlocked before export |
-| Notebook internal link | 🔴 onenote:// url |
 
 # Technical characteristics
 
