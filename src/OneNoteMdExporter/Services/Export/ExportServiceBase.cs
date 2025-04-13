@@ -142,19 +142,25 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 string sectionProgrammaticId = null;
                 try
                 {
-                    OneNoteApp.Instance.GetHyperlinkToObject(page.Parent.OneNoteId, null, out string sectionLink);
-                    var sectionIdMatch = Regex.Match(sectionLink, @"section-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
-                    if (sectionIdMatch.Success)
+                    if (page.Parent?.OneNoteId != null)
                     {
-                        sectionProgrammaticId = sectionIdMatch.Groups[1].Value;
+                        OneNoteApp.Instance.GetHyperlinkToObject(page.Parent.OneNoteId, null, out string sectionLink);
+                        var sectionIdMatch = Regex.Match(sectionLink, @"section-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
+                        if (sectionIdMatch.Success)
+                        {
+                            sectionProgrammaticId = sectionIdMatch.Groups[1].Value;
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"Failed to generate programmatic ID for section {page.Parent.Title}: {ex.Message}");
+                    Log.Warning($"Failed to generate programmatic ID for section {page.Parent?.Title}: {ex.Message}");
                 }
                 
-                ConverterService.RegisterSectionMapping(page.Parent.OneNoteId, sectionProgrammaticId, page.Parent.GetPath(AppSettings.MdMaxFileLength), page.Parent.Title);
+                if (page.Parent?.OneNoteId != null)
+                {
+                    ConverterService.RegisterSectionMapping(page.Parent.OneNoteId, sectionProgrammaticId, page.Parent.GetPath(AppSettings.MdMaxFileLength), page.Parent.Title);
+                }
 
                 var docxFileTmpFile = Path.Combine(GetTmpFolder(page), page.Id + ".docx");
 
