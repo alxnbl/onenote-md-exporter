@@ -73,7 +73,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(AppSettings.MdMaxFileLength) + ".md");
 
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\" " +
-                            $"--to {AppSettings.PanDocMarkdownFormat} " +
+                            $"--to={AppSettings.PanDocMarkdownFormat} " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
                             $"--wrap=none " + // Mandatory to avoid random quote block to be added to markdown
                             $"--extract-media=\"{tmpDir}\"";
@@ -253,41 +253,52 @@ namespace alxnbl.OneNoteMdExporter.Services
                 var onenoteUrl = match.Groups["url"].Value;
                 
                 Log.Debug($"Processing OneNote link: {onenoteUrl}");
-                
-                // Extract page-id from URL
-                var pageIdMatch = Regex.Match(onenoteUrl, @"page-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
-                
-                if (pageIdMatch.Success)
+
+                switch (AppSettings.OneNoteLinksHandling)
                 {
-                    var pageId = pageIdMatch.Groups[1].Value;
-                    Log.Debug($"Found page ID in link: {pageId}");
+                    case OneNoteLinksHandlingEnum.KeepOriginal:
+                        return match.Value;
                     
-                    // Try to find the page by both original ID and programmatic ID
-                    OneNoteLinkMetadata pageMetadata = null;
+                    case OneNoteLinksHandlingEnum.Remove:
+                        return linkText;
                     
-                    foreach (var entry in PageMetadata)
-                    {
-                        if (string.Equals(entry.Key, pageId, StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(entry.Value.ProgrammaticId, pageId, StringComparison.OrdinalIgnoreCase))
+                    case OneNoteLinksHandlingEnum.ConvertToMarkdown:
+                        // Extract page-id from URL
+                        var pageIdMatch = Regex.Match(onenoteUrl, @"page-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
+                        
+                        if (pageIdMatch.Success)
                         {
-                            pageMetadata = entry.Value;
-                            Log.Debug($"Found matching page path: {pageMetadata.MdFilePath}");
-                            break;
+                            var pageId = pageIdMatch.Groups[1].Value;
+                            Log.Debug($"Found page ID in link: {pageId}");
+                            
+                            // Try to find the page by both original ID and programmatic ID
+                            OneNoteLinkMetadata pageMetadata = null;
+                            
+                            foreach (var entry in PageMetadata)
+                            {
+                                if (string.Equals(entry.Key, pageId, StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(entry.Value.ProgrammaticId, pageId, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    pageMetadata = entry.Value;
+                                    Log.Debug($"Found matching page path: {pageMetadata.MdFilePath}");
+                                    break;
+                                }
+                            }
+                            
+                            if (pageMetadata != null)
+                            {
+                                return $"[{linkText}]({pageMetadata.MdFilePath}.md)";
+                            }
+                            
+                            // Log the IDs and available keys for debugging
+                            Log.Debug($"Unable to resolve OneNote link. Page ID: {pageId}");
+                            Log.Debug($"Available page IDs: {string.Join(", ", PageMetadata.Keys)}");
                         }
-                    }
+                        return match.Value;
                     
-                    if (pageMetadata != null)
-                    {
-                        return $"[{linkText}]({pageMetadata.MdFilePath}.md)";
-                    }
-                    
-                    // Log the IDs and available keys for debugging
-                    Log.Debug($"Unable to resolve OneNote link. Page ID: {pageId}");
-                    Log.Debug($"Available page IDs: {string.Join(", ", PageMetadata.Keys)}");
+                    default:
+                        return match.Value;
                 }
-                
-                // If we can't find a mapping, keep the original link
-                return match.Value;
             });
 
             return pageTxtModified;

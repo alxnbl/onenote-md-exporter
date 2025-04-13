@@ -100,6 +100,11 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// </summary>
         public static bool MaxTwoLineBreaksInARow { get; set; } = true;
 
+        /// <summary>
+        /// OneNote links handling
+        /// </summary>
+        public static OneNoteLinksHandlingEnum OneNoteLinksHandling { get; set; } = OneNoteLinksHandlingEnum.ConvertToMarkdown;
+
 
         /*
          * Developer Settings
