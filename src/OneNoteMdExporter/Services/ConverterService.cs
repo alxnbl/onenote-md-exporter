@@ -277,7 +277,21 @@ namespace alxnbl.OneNoteMdExporter.Services
                 if (PageMetadata.TryGetValue(programmaticId, out var pageMetadata))
                 {
                     Log.Debug($"ConvertOneNoteLinks - Found page: {pageMetadata.MdFilePath}, pageId: {programmaticId}");
-                    return $"[{linkText}]({pageMetadata.MdFilePath}.md)";
+                    
+                    // Normalize path to use forward slashes
+                    var normalizedPath = pageMetadata.MdFilePath.Replace('\\', '/');
+
+                    if (AppSettings.OneNoteLinksHandling == OneNoteLinksHandlingEnum.ConvertToWikilink)
+                    {                        
+                        // For Wikilinks, we use the format [[MdFilePath]] or [[MdFilePath|Display Text]]
+                        return linkText == pageMetadata.Title ? 
+                            $"[[{normalizedPath}]]" : 
+                            $"[[{normalizedPath}|{linkText}]]";
+                    }
+                    else // ConvertToMarkdown
+                    {
+                        return $"[{linkText}]({normalizedPath}.md)";
+                    }
                 }
 
                 Log.Debug($"ConvertOneNoteLinks - No page found for pageId: {programmaticId}");

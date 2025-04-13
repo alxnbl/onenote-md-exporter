@@ -4,6 +4,7 @@ namespace alxnbl.OneNoteMdExporter.Models
     {
         KeepOriginal,
         ConvertToMarkdown,
+        ConvertToWikilink,
         Remove
     }
 } 
