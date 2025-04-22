@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace alxnbl.OneNoteMdExporter.Services.Export
 {
@@ -67,23 +68,65 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
             Log.Information(string.Format(Localizer.GetString("FoundXSectionsAndSecGrp"), sections.Count));
 
-            // Create the joplin root mdfile of the notebook
-            WriteSectionNodeMdFile(notebook);
+            // Phase 1: Build complete tree and collect metadata
+            Log.Information("Phase 1: Building notebook tree and collecting metadata...");
+            var allNodes = new List<Node>(); // Will contain both sections and pages
+            var allPages = new List<Page>();
 
-            // Export each section group and section
-            int cmpt = 0;
+            // First, collect all sections and section groups
             foreach (Section section in sections)
             {
-                cmpt++;
-                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({cmpt}/{sections.Count}) :  {section.GetPath(AppSettings.MdMaxFileLength)}\\{section.Title}");
-
-                WriteSectionNodeMdFile(section);
+                allNodes.Add(section);
+                
+                // Register section mapping with programmatic ID
+                try
+                {
+                    OneNoteApp.Instance.GetHyperlinkToObject(section.OneNoteId, null, out string sectionLink);
+                    var sectionIdMatch = Regex.Match(sectionLink, @"section-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
+                    if (sectionIdMatch.Success)
+                    {
+                        var programmaticId = sectionIdMatch.Groups[1].Value;
+                        ConverterService.RegisterSectionMapping(section.OneNoteId, programmaticId, section.GetPath(AppSettings.MdMaxFileLength), section.Title);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning($"Failed to generate programmatic ID for section {section.Title}: {ex.Message}");
+                }
 
                 if (!section.IsSectionGroup)
                 {
-                    var sectionResult = ExportSectionPages(section, pageNameFilter);
-                    result.PagesOnError += sectionResult.PagesOnError;
+                    // Get pages list and collect metadata
+                    var pages = OneNoteApp.Instance.FillSectionPages(section).Where(p => string.IsNullOrEmpty(pageNameFilter) || p.Title == pageNameFilter).ToList();
+                    allPages.AddRange(pages);
+                    allNodes.AddRange(pages);
                 }
+            }
+
+            // Phase 2: Export content and convert to markdown
+            Log.Information("Phase 2: Exporting content and converting to markdown...");
+
+            // First export all sections (including section groups)
+            int cmptSect = 0;
+            foreach (Section section in sections)
+            {
+                Log.Information($"{Localizer.GetString("StartProcessingSectionX")} ({++cmptSect}/{sections.Count}) :  {section.GetPath(AppSettings.MdMaxFileLength)}\\{section.Title}");
+                WriteSectionNodeMdFile(section);
+            }
+
+            // Then export all pages
+            int cmptPage = 0;
+            foreach (Page page in allPages)
+            {
+                if (AppSettings.ProcessingOfPageHierarchy == PageHierarchyEnum.HierarchyAsFolderTree)
+                {
+                    MovePageHierarchyInADedicatedNotebook(page);
+                }
+
+                Log.Information($"   {Localizer.GetString("Page")} {++cmptPage}/{allPages.Count} : {page.TitleWithPageLevelTabulation}");
+                var success = ExportPage(page);
+
+                if (!success) result.PagesOnError++;
             }
 
             return result;

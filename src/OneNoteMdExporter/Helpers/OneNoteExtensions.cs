@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using System.Text.RegularExpressions;
+using alxnbl.OneNoteMdExporter.Services;
+using Serilog;
 
 namespace alxnbl.OneNoteMdExporter.Helpers
 {
@@ -55,6 +58,23 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                     _ => throw new NotImplementedException(),
                 }
             };
+
+            // Register section mapping with programmatic ID
+            try
+            {
+                OneNoteApp.Instance.GetHyperlinkToObject(section.OneNoteId, null, out string sectionLink);
+                var sectionIdMatch = Regex.Match(sectionLink, @"section-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
+                if (sectionIdMatch.Success)
+                {
+                    var programmaticId = sectionIdMatch.Groups[1].Value;
+                    ConverterService.RegisterSectionMapping(section.OneNoteId, programmaticId, section.GetPath(AppSettings.MdMaxFileLength), section.Title);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"Failed to generate programmatic ID for section {section.Title}: {ex.Message}");
+            }
+
             return section;
         }
 
@@ -80,6 +100,22 @@ namespace alxnbl.OneNoteMdExporter.Helpers
                 CreationDate = creationDate,
                 LastModificationDate = lastModificationDate
             };
+
+            // Register page mapping with programmatic ID
+            try
+            {
+                OneNoteApp.Instance.GetHyperlinkToObject(page.OneNoteId, null, out string pageLink);
+                var pageIdMatch = Regex.Match(pageLink, @"page-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
+                if (pageIdMatch.Success)
+                {
+                    var programmaticId = pageIdMatch.Groups[1].Value;
+                    ConverterService.RegisterPageMapping(page.OneNoteId, programmaticId, page.GetPageFileRelativePath(AppSettings.MdMaxFileLength), page.Title);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"Failed to generate programmatic ID for page {page.Title}: {ex.Message}");
+            }
 
             return page;
         }

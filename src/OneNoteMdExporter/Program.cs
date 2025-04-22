@@ -65,16 +65,22 @@ namespace alxnbl.OneNoteMdExporter
 
         private static void RunOptions(Options opts)
         {
+            AppSettings.LoadAppSettings();
+            AppSettings.Debug = opts.Debug;
+
+            Log.Debug("Debug mode: {DebugMode}", AppSettings.Debug);
             InitLogger();
 
             try
             {
                 AppDomain.CurrentDomain.ProcessExit += new EventHandler((_, _) => OneNoteApp.CleanUp());
                 OneNoteApp.RenewInstance();
+                Log.Debug("OneNote instance renewed successfully");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Log.Error(Localizer.GetString("ErrorPreventToCommunicateWithOneNote"));
+                Log.Error(ex, "Error communicating with OneNote");
+                Log.Debug("Exception details: {Exception}", ex.ToString());
 
                 if (!opts.NoInput && !opts.IgnoreErrors)
                 {
@@ -124,9 +130,6 @@ namespace alxnbl.OneNoteMdExporter
 
             if (!opts.NoInput)
                 UpdateSettingsForm();
-
-            AppSettings.LoadAppSettings();
-            AppSettings.Debug = opts.Debug;
 
             var exportService = ExportServiceFactory.GetExportService(exportFormat);
 
@@ -305,10 +308,15 @@ namespace alxnbl.OneNoteMdExporter
 
         private static void InitLogger()
         {
+            var logLevel = AppSettings.Debug ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information;
+            
             Log.Logger = new LoggerConfiguration()
-               .WriteTo.File(loggerFilename, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-               .WriteTo.Console(Serilog.Events.LogEventLevel.Information, "{Message:lj}{NewLine}")
+               .MinimumLevel.Is(logLevel)  // Imposta il livello minimo per tutti i sink
+               .WriteTo.File(loggerFilename, restrictedToMinimumLevel: logLevel, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+               .WriteTo.Console(restrictedToMinimumLevel: logLevel, outputTemplate: "{Message:lj}{NewLine}")
                .CreateLogger();
+
+            Log.Debug("Logger initialized with level: {LogLevel}", logLevel);
         }
     }
 }

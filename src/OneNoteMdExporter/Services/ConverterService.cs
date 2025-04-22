@@ -2,14 +2,58 @@
 using alxnbl.OneNoteMdExporter.Models;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Text.RegularExpressions;
+using System.Web;
+using System.Linq;
 
 namespace alxnbl.OneNoteMdExporter.Services
 {
     public static class ConverterService
     {
+        // Dictionary to store page and section mappings
+        private static readonly Dictionary<string, OneNoteLinkMetadata> PageMetadata = new();
+        private static readonly Dictionary<string, OneNoteLinkMetadata> SectionMetadata = new();
+
+        /// <summary>
+        /// Register a page mapping for link conversion; the key is the programmatic ID generated from OneNote
+        /// </summary>
+        /// <param name="pageId">OneNote page ID</param>
+        /// <param name="programmaticId">Programmatic ID generated from OneNote</param>
+        /// <param name="exportPath">Relative export path of the page</param>
+        /// <param name="title">Page title</param>
+        public static void RegisterPageMapping(string pageId, string programmaticId, string exportPath, string title)
+        {
+            PageMetadata[programmaticId] = new OneNoteLinkMetadata
+            {
+                OriginalId = pageId,
+                ProgrammaticId = programmaticId,
+                MdFilePath = exportPath,
+                Title = title
+            };
+        }
+
+        /// <summary>
+        /// Register a section mapping for link conversion; the key is the programmatic ID generated from OneNote
+        /// </summary>
+        /// <param name="sectionId">OneNote section ID</param>
+        /// <param name="programmaticId">Programmatic ID generated from OneNote</param>
+        /// <param name="exportPath">Relative export path of the section</param>
+        /// <param name="title">Section title</param>
+        public static void RegisterSectionMapping(string sectionId, string programmaticId, string exportPath, string title)
+        {
+            SectionMetadata[programmaticId] = new OneNoteLinkMetadata
+            {
+                OriginalId = sectionId,
+                ProgrammaticId = programmaticId,
+                MdFilePath = exportPath,
+                Title = title
+            };
+        }
+
         /// <summary>
         /// Convert DocX file into MD using PanDoc
         /// </summary>
@@ -28,9 +72,9 @@ namespace alxnbl.OneNoteMdExporter.Services
                 pandocPath = "pandoc.exe";
 
             var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(AppSettings.MdMaxFileLength) + ".md");
-
+ 
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\" " +
-                            $"--to {AppSettings.PanDocMarkdownFormat} " +
+                            $"--to={AppSettings.PanDocMarkdownFormat} " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
                             $"--wrap=none " + // Mandatory to avoid random quote block to be added to markdown
                             $"--extract-media=\"{tmpDir}\"";
@@ -113,6 +157,8 @@ namespace alxnbl.OneNoteMdExporter.Services
             }
 
             mdFileContent = InsertMdHighlight(mdFileContent);
+            
+            mdFileContent = ConvertOneNoteLinks(mdFileContent);
         }
 
         private static string RemoveOneNoteHeader(string pageTxt)
@@ -191,6 +237,66 @@ namespace alxnbl.OneNoteMdExporter.Services
             });
 
             return pageTxtModified;
+        }
+
+        /// <summary>
+        /// Convert OneNote internal links to markdown references
+        /// </summary>
+        /// <param name="pageTxt">Markdown content</param>
+        /// <returns>Updated markdown content with converted links</returns>
+        private static string ConvertOneNoteLinks(string pageTxt)
+        {
+            if (AppSettings.OneNoteLinksHandling == OneNoteLinksHandlingEnum.KeepOriginal)
+            {
+                return pageTxt;
+            }
+
+            // Match markdown links with onenote:// URLs
+            const string regexPattern = @"\[(?<text>[^\]]+)\]\(onenote:(?<url>[^\)]+)\)";
+            const string pageIdPattern = @"page-id=\{([^}]+)\}";
+            
+            return Regex.Replace(pageTxt, regexPattern, match =>
+            {
+                var linkText = match.Groups["text"].Value;
+                var onenoteUrl = match.Groups["url"].Value;
+                
+                if (AppSettings.OneNoteLinksHandling == OneNoteLinksHandlingEnum.Remove)
+                {
+                    return linkText;
+                }
+
+                // Extract page-id from URL
+                var pageIdMatch = Regex.Match(onenoteUrl, pageIdPattern, RegexOptions.IgnoreCase);
+                if (!pageIdMatch.Success)
+                {
+                    Log.Debug($"ConvertOneNoteLinks - No page-id found in URL: {onenoteUrl}");
+                    return match.Value;
+                }
+
+                var programmaticId = pageIdMatch.Groups[1].Value;                
+                if (PageMetadata.TryGetValue(programmaticId, out var pageMetadata))
+                {
+                    Log.Debug($"ConvertOneNoteLinks - Found page: {pageMetadata.MdFilePath}, pageId: {programmaticId}");
+                    
+                    // Normalize path to use forward slashes
+                    var normalizedPath = pageMetadata.MdFilePath.Replace('\\', '/');
+
+                    if (AppSettings.OneNoteLinksHandling == OneNoteLinksHandlingEnum.ConvertToWikilink)
+                    {                        
+                        // For Wikilinks, we use the format [[MdFilePath]] or [[MdFilePath|Display Text]]
+                        return linkText == pageMetadata.Title ? 
+                            $"[[{normalizedPath}]]" : 
+                            $"[[{normalizedPath}|{linkText}]]";
+                    }
+                    else // ConvertToMarkdown
+                    {
+                        return $"[{linkText}]({normalizedPath}.md)";
+                    }
+                }
+
+                Log.Debug($"ConvertOneNoteLinks - No page found for pageId: {programmaticId}");
+                return match.Value;
+            });
         }
     }
 }
