@@ -133,7 +133,7 @@ namespace alxnbl.OneNoteMdExporter.Services
 
         private static string RemoveOneNoteHeader(string pageTxt)
         {
-            var pageTxtModified = Regex.Replace(pageTxt, @"^.+(\n|\r|\r\n){1,2}.+(\n|\r|\r\n){1,2}\d{2}:\d{2}\s+", "");
+            var pageTxtModified = Regex.Replace(pageTxt, @"^(\n|\r)*.+(\n|\r)+.+(\n|\r)+\d{1,2}:\d{2}\s(AM|PM)(\n|\r)+", "");
 
             return pageTxtModified;
         }
