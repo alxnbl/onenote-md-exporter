@@ -146,3 +146,7 @@ You can contribute by adding an new feature or add translations. See [this page]
 # Support
 
 I developed this tool on a voluntary basis, but if you like my work you can [buy me a ☕](https://www.buymeacoffee.com/alxnbl).
+
+# Related Projects
+
+* The [OneMore add-in](https://onemoreaddin.com/) can import and export from/to Markdown.
