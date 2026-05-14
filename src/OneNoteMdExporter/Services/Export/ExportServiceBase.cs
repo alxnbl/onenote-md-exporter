@@ -459,6 +459,12 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             // Find occurances and replace
             foreach (var tagElement in xmlPageContent.Descendants(ns + "Tag"))
             {
+                if (tagElement.Parent == null || tagElement.Parent.Descendants(ns + "T").Count() == 0)
+                {
+                    // No known text element associated to the tag, we skip it
+                    continue;
+                }
+
                 // Get the corresponding text element
                 XElement textElement = tagElement.Parent.Descendants(ns + "T").First() as XElement;
                 if (textElement.FirstNode is not XCData)
