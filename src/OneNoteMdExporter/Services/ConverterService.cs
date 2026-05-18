@@ -33,12 +33,22 @@ namespace alxnbl.OneNoteMdExporter.Services
                 pandocPath = "pandoc.exe";
 
             var mdFilePath = Path.Combine(tmpDir, page.TitleWithNoInvalidChars(AppSettings.MdMaxFileLength) + ".md");
- 
+
             var arguments = $"\"{Path.GetFullPath(inputFilePath)}\" " +
                             $"--to={AppSettings.PanDocMarkdownFormat} " +
                             $"-o \"{Path.GetFullPath(mdFilePath)}\" " +
                             $"--wrap=none " + // Mandatory to avoid random quote block to be added to markdown
                             $"--extract-media=\"{tmpDir}\"";
+
+            if (!String.IsNullOrEmpty(AppSettings.PanDocColumns))
+            {
+                arguments += $" --columns=\"{AppSettings.PanDocColumns}\"";
+            }
+
+            if (!String.IsNullOrEmpty(AppSettings.PanDocLuaFilter))
+            {
+                arguments += $" --lua-filter=\"{AppSettings.PanDocLuaFilter}\"";
+            }
 
             var startInfo = new ProcessStartInfo
             {
