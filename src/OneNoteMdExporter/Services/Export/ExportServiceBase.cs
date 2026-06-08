@@ -599,6 +599,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 var panDocHtmlImgTagPath = Path.GetFullPath(imgMatch.Groups["src"].Value);
                 panDocHtmlImgTagPath = WebUtility.HtmlDecode(panDocHtmlImgTagPath);
+
+                // Convert Windows metafile formats (EMF/WMF) to PNG for markdown viewer compatibility
+                panDocHtmlImgTagPath = ConvertMetafileToImageIfNeeded(panDocHtmlImgTagPath);
+
                 Attachement imgAttach = page.ImageAttachements.Where(img => PathExtensions.PathEquals(img.ActualSourceFilePath, panDocHtmlImgTagPath)).FirstOrDefault();
 
                 // Only add a new attachment if this is the first time the image is referenced in the page
@@ -659,6 +663,51 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             if (AppSettings.PostProcessingMdImgRef)
             {
                 mdFileContent = pageTxtModified;
+            }
+        }
+
+        /// <summary>
+        /// Converts a Windows metafile (EMF or WMF) to PNG format so that markdown viewers can display it.
+        /// Screen clippings pasted into OneNote are exported as EMF images by pandoc, which most markdown
+        /// viewers cannot display. This method converts them to PNG in place.
+        /// </summary>
+        /// <param name="imagePath">Path to the image file. Returned unchanged if not an EMF/WMF file.</param>
+        /// <returns>Path to the PNG file, or the original path if no conversion was performed.</returns>
+        private static string ConvertMetafileToImageIfNeeded(string imagePath)
+        {
+            var ext = Path.GetExtension(imagePath).ToLowerInvariant();
+            if (ext != ".emf" && ext != ".wmf")
+                return imagePath;
+
+            var pngPath = Path.ChangeExtension(imagePath, ".png");
+
+            // If PNG already exists (e.g. same image referenced twice), reuse it
+            if (File.Exists(pngPath))
+                return pngPath;
+
+            if (!File.Exists(imagePath))
+                return imagePath;
+
+            try
+            {
+                using (var img = System.Drawing.Image.FromFile(imagePath))
+                {
+                    var width = img.Width > 0 ? img.Width : 800;
+                    var height = img.Height > 0 ? img.Height : 600;
+
+                    using var bmp = new System.Drawing.Bitmap(width, height);
+                    using var g = System.Drawing.Graphics.FromImage(bmp);
+                    g.DrawImage(img, 0, 0, width, height);
+                    bmp.Save(pngPath, System.Drawing.Imaging.ImageFormat.Png);
+                }
+
+                File.Delete(imagePath);
+                return pngPath;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"Failed to convert metafile {Path.GetFileName(imagePath)} to PNG: {ex.Message}");
+                return imagePath;
             }
         }
 
