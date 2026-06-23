@@ -97,10 +97,19 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         {
             try
             {
-                OneNoteApp.Instance.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piBinaryDataFileType);
-
-                // Alternative : return page content without binaries
-                //oneNoteApp.GetHierarchy(page.OneNoteId, HierarchyScope.hsChildren, out var xmlAttach);
+                string xmlPageContentStr;
+                try
+                {
+                    OneNoteApp.Instance.GetPageContent(page.OneNoteId, out xmlPageContentStr, PageInfo.piBinaryDataFileType);
+                }
+                catch (COMException exGpc)
+                {
+                    // Some pages contain embedded objects (e.g. file printouts / scanned documents) whose binary
+                    // content OneNote refuses to return (0x80042014 hrObjectDoesNotExist / 0x8004202B). In that case,
+                    // retry without binaries so the page text and structure are still exported (embedded files lost).
+                    Log.Warning($"{page.OneNoteId}: GetPageContent(piBinaryDataFileType) failed ({exGpc.Message}). Retrying without binaries (piBasic).");
+                    OneNoteApp.Instance.GetPageContent(page.OneNoteId, out xmlPageContentStr, PageInfo.piBasic);
+                }
 
                 var xmlPageContent = XDocument.Parse(xmlPageContentStr).Root;
                 var ns = xmlPageContent.Name.Namespace;
@@ -112,8 +121,19 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 if (!AppSettings.DisablePageXmlPreProcessing)
                 {
-                    // Make various OneNote XML fixes before page export
-                    page.OverrideOneNoteId = PageXmlPreProcessing(xmlPageContent);
+                    try
+                    {
+                        // Make various OneNote XML fixes before page export
+                        page.OverrideOneNoteId = PageXmlPreProcessing(xmlPageContent);
+                    }
+                    catch (COMException exPre)
+                    {
+                        // Cloning the pre-processed page into the temporary notebook fails for pages containing
+                        // embedded objects such as file printouts / scanned documents (0x80042014 hrObjectDoesNotExist).
+                        // Fall back to exporting the original page without pre-processing so its content is not lost.
+                        Log.Warning($"{page.OneNoteId}: page pre-processing/clone failed ({exPre.Message}). Exporting original page without pre-processing.");
+                        page.OverrideOneNoteId = null;
+                    }
                 }
 
                 // Register page and section mappings for link conversion
