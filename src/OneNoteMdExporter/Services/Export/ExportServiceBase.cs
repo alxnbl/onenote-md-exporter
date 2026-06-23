@@ -520,6 +520,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="pageMdFileContent">Markdown content of the page</param>
         private void ExportPageAttachments(Page page, ref string pageMdFileContent)
         {
+            // OneNote concatenates consecutive attachment tags without any separator (\<\<A\>\>\<\<B\>\>),
+            // which is hard to read once converted to links. Put each one on its own line.
+            pageMdFileContent = pageMdFileContent.Replace("\\>\\>\\<\\<", "\\>\\>\n\\<\\<");
+
             foreach (Attachement attach in page.Attachements)
             {
                 if (attach.Type == AttachementType.File)
@@ -540,6 +544,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 FinalizeExportPageAttachments(page, attach);
             }
+
+            // Any \<\<name\>\> placeholder still present could not be extracted (file not available in the OneNote
+            // cache, e.g. file printouts). Convert the raw OneNote tag into readable bold text instead of leaving it.
+            pageMdFileContent = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*?)(\\\\>){2}", m =>
+            {
+                var name = Regex.Replace(m.Groups["fileName"].Value, @"\\(.)", "$1");
+                return $"**{name}**";
+            });
         }
 
 
@@ -558,16 +570,30 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attach"></param>
         private static void InsertPageMdAttachmentReference(ref string pageMdFileContent, Attachement attach, Func<Attachement, string> getAttachMdReferenceMethod)
         {
-            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(\\\\>){2}", delegate (Match match)
+            // Replace only the first still-open matching placeholder so that several attachments sharing the same
+            // name on one page are each linked to their own file rather than all to the first one.
+            var alreadyReplaced = false;
+
+            // Note the lazy quantifier (.*?): a greedy .* would span across multiple consecutive \<\<...\>\> tags
+            // on the same page, so the comparison below would never match and no link would be inserted.
+            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*?)(\\\\>){2}", delegate (Match match)
             {
+                if (alreadyReplaced)
+                    return match.Value;
+
                 var refFileName = match.Groups["fileName"]?.Value ?? "";
+                // PanDoc escapes special characters (_, [, ], etc.) in markdown; remove the backslash escapes before comparing
+                var refFileNameUnescaped = Regex.Replace(refFileName, @"\\(.)", "$1");
                 var attachOriginalFileName = attach.OneNotePreferredFileName;
                 var attachMdRef = getAttachMdReferenceMethod(attach);
 
-                if (refFileName.Equals(attachOriginalFileName))
+                if (refFileNameUnescaped.Equals(attachOriginalFileName))
                 {
                     // reference found is corresponding to the attachment being processed
-                    return $"[{attachOriginalFileName}]({attachMdRef})";
+                    alreadyReplaced = true;
+                    // Escape '[' and ']' in the link label so brackets in file names (e.g. "...aktuell[1].pdf") don't break the link
+                    var label = attachOriginalFileName.Replace("[", "\\[").Replace("]", "\\]");
+                    return $"[{label}]({attachMdRef})";
                 }
                 else
                 {
