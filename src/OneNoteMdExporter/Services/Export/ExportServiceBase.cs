@@ -1,4 +1,4 @@
-﻿using alxnbl.OneNoteMdExporter.Helpers;
+using alxnbl.OneNoteMdExporter.Helpers;
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
 using Microsoft.Office.Interop.OneNote;
@@ -584,6 +584,8 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 var refFileName = match.Groups["fileName"]?.Value ?? "";
                 // PanDoc escapes special characters (_, [, ], etc.) in markdown; remove the backslash escapes before comparing
                 var refFileNameUnescaped = Regex.Replace(refFileName, @"\\(.)", "$1");
+                // Normalize invisible/space variants on both sides so the comparison matches the (already normalized) preferred name
+                refFileNameUnescaped = RemoveInvisibleChars(refFileNameUnescaped);
                 var attachOriginalFileName = attach.OneNotePreferredFileName;
                 var attachMdRef = getAttachMdReferenceMethod(attach);
 
@@ -693,31 +695,27 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="page">The parent Page</param>
         /// <param name="attach">The attachment</param>
+        // Notebook-wide set of attachment paths already assigned, for O(1) duplicate detection.
+        private readonly HashSet<string> _usedAttachmentPaths = new(StringComparer.OrdinalIgnoreCase);
+
         private void EnsureAttachmentFileIsNotUsed(Page page, Attachement attach)
         {
-            var notUseFileNameFound = false;
+            // Original names (instead of GUIDs) can collide across the notebook. Find the next free name by checking
+            // a notebook-wide set in O(1) instead of rescanning every attachment of the notebook (previously O(A^2)).
+            var basePath = GetAttachmentFilePath(attach);
+            var candidateFilePath = basePath;
             var cmpt = 0;
-            var attachmentFilePath = GetAttachmentFilePath(attach);
 
-            while (!notUseFileNameFound)
+            while (_usedAttachmentPaths.Contains(candidateFilePath))
             {
-                var candidateFilePath = cmpt == 0 ? attachmentFilePath :
-                    $"{Path.ChangeExtension(attachmentFilePath, null)}-{cmpt}{Path.GetExtension(attachmentFilePath)}";
-
-                var attachmentFileNameAlreadyUsed = page.GetNotebook().GetAllAttachments().Any(a => a != attach && PathExtensions.PathEquals(GetAttachmentFilePath(a), candidateFilePath));
-
-                // because of using guid, this step should no longer needed and need to be removed
-                if (!attachmentFileNameAlreadyUsed)
-                {
-                    if (cmpt > 0)
-                        attach.OverrideExportFilePath = candidateFilePath;
-
-                    notUseFileNameFound = true;
-                }
-                else
-                    cmpt++;
+                cmpt++;
+                candidateFilePath = $"{Path.ChangeExtension(basePath, null)}-{cmpt}{Path.GetExtension(basePath)}";
             }
 
+            if (cmpt > 0)
+                attach.OverrideExportFilePath = candidateFilePath;
+
+            _usedAttachmentPaths.Add(candidateFilePath);
         }
 
 
@@ -751,6 +749,19 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
         }
 
+        /// <summary>
+        /// Normalize file names: convert non-breaking / narrow spaces to a normal space, and remove truly invisible
+        /// formatting characters (soft hyphen, zero-width spaces, word joiner, BOM). OneNote keeps these in a file name
+        /// but PanDoc strips/normalizes them in the &lt;&lt;name&gt;&gt; tag, which would otherwise make the attachment
+        /// file name and the markdown link differ by an (invisible) character and break the link.
+        /// </summary>
+        private static string RemoveInvisibleChars(string s)
+        {
+            if (s == null) return null;
+            s = Regex.Replace(s, "[\u00A0\u2007\u202F]", " ");
+            return Regex.Replace(s, "[\u00AD\u200B\u200C\u200D\u2060\uFEFF]", "");
+        }
+
         private static void ProcessPageAttachments(XNamespace ns, Page page, XElement xmlPageContent)
         {
             foreach (var xmlAttachment in xmlPageContent.Descendants(ns + "InsertedFile").Concat(xmlPageContent.Descendants(ns + "MediaFile")))
@@ -759,7 +770,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 {
                     ActualSourceFilePath = xmlAttachment.Attribute("pathCache")?.Value,
                     OriginalUserFilePath = xmlAttachment.Attribute("pathSource")?.Value,
-                    OneNotePreferredFileName = xmlAttachment.Attribute("preferredName")?.Value,
+                    OneNotePreferredFileName = RemoveInvisibleChars(xmlAttachment.Attribute("preferredName")?.Value),
                     Type = AttachementType.File
                 };
 

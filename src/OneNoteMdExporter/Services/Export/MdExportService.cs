@@ -58,10 +58,18 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected override string GetAttachmentFilePath(Attachement attachment)
         {
-            if (attachment.OverrideExportFilePath == null)
-                return Path.Combine(GetResourceFolderPath(attachment.ParentPage), attachment.Id + Path.GetExtension(attachment.FriendlyFileName));
-            else
+            if (attachment.OverrideExportFilePath != null)
                 return attachment.OverrideExportFilePath;
+
+            // For file attachments, use the original (friendly) file name so the resource folder stays human-readable
+            // (sanitized; duplicates handled by EnsureAttachmentFileIsNotUsed). Images extracted from the docx have no
+            // meaningful original name (all "image1.png"...), so keep the GUID to avoid mass name collisions.
+            var friendly = attachment.FriendlyFileName;
+            string fileName = (attachment.Type == AttachementType.File && !string.IsNullOrWhiteSpace(friendly))
+                ? string.Join("_", friendly.Split(Path.GetInvalidFileNameChars()))
+                : attachment.Id + Path.GetExtension(friendly ?? "");
+
+            return Path.Combine(GetResourceFolderPath(attachment.ParentPage), fileName);
         }
 
         /// <summary>
@@ -70,7 +78,24 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attachment"></param>
         /// <returns></returns>
         protected override string GetAttachmentMdReference(Attachement attachment)
-            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachment.ParentPage)), GetAttachmentFilePath(attachment)).Replace("\\", "/");
+        {
+            var rel = Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachment.ParentPage)), GetAttachmentFilePath(attachment)).Replace("\\", "/");
+            return EncodeMdLinkPath(rel);
+        }
+
+        /// <summary>
+        /// URL-encode characters that break markdown link parsing (spaces, brackets, parentheses, #) while keeping
+        /// path separators and unicode (umlauts) readable. Needed since attachments now use their original file names.
+        /// </summary>
+        private static string EncodeMdLinkPath(string relativePath)
+            => relativePath
+                .Replace("%", "%25")
+                .Replace(" ", "%20")
+                .Replace("[", "%5B")
+                .Replace("]", "%5D")
+                .Replace("(", "%28")
+                .Replace(")", "%29")
+                .Replace("#", "%23");
 
         public override NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
