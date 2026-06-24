@@ -593,9 +593,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 {
                     // reference found is corresponding to the attachment being processed
                     alreadyReplaced = true;
-                    // Escape '[' and ']' in the link label so brackets in file names (e.g. "...aktuell[1].pdf") don't break the link
-                    var label = attachOriginalFileName.Replace("[", "\\[").Replace("]", "\\]");
-                    return $"[{label}]({attachMdRef})";
+                    // Link target: wrap in angle brackets <...> so any valid Windows file name (commas, '+', spaces,
+                    // umlauts, ...) resolves literally without percent-encoding, which Obsidian mis-decodes. Angle
+                    // brackets only forbid '<' '>' newline - all illegal in Windows file names anyway.
+                    // Label: replace '[' / ']' with round brackets - square brackets break the markdown link in
+                    // Obsidian whether escaped ("\[") or literal ("["); only a bracket-free label resolves.
+                    var label = attachOriginalFileName.Replace("[", "(").Replace("]", ")");
+                    return $"[{label}](<{attachMdRef}>)";
                 }
                 else
                 {
@@ -649,9 +653,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 var refLabel = Path.GetFileNameWithoutExtension(imgAttach.ActualSourceFilePath);
 
                 if (outputHtmlTag)
-                    return $"<img src=\"{attachRef}\" alt=\"{refLabel}\" />";
+                    return $"<img src=\"{attachRef}\" alt=\"{refLabel}\" />"; // raw path (image names are GUIDs)
                 else
-                    return $"![{refLabel}]({attachRef})";
+                    return $"![{refLabel}](<{attachRef}>)"; // angle-bracket the markdown image target
             }
 
             // Match <IMG> tags and any html cell tags arround

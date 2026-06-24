@@ -73,29 +73,13 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         }
 
         /// <summary>
-        /// Get relative path from Image's folder to attachment folder
+        /// Relative path from the page's folder to the attachment file, with forward slashes.
+        /// Returned raw (not encoded): markdown links wrap it in angle brackets &lt;...&gt; (see
+        /// InsertPageMdAttachmentReference / image handling), which lets any valid Windows file name appear
+        /// literally without percent-encoding. HTML &lt;img src&gt; uses it raw too (images always have GUID names).
         /// </summary>
-        /// <param name="attachment"></param>
-        /// <returns></returns>
         protected override string GetAttachmentMdReference(Attachement attachment)
-        {
-            var rel = Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachment.ParentPage)), GetAttachmentFilePath(attachment)).Replace("\\", "/");
-            return EncodeMdLinkPath(rel);
-        }
-
-        /// <summary>
-        /// URL-encode characters that break markdown link parsing (spaces, brackets, parentheses, #) while keeping
-        /// path separators and unicode (umlauts) readable. Needed since attachments now use their original file names.
-        /// </summary>
-        private static string EncodeMdLinkPath(string relativePath)
-            => relativePath
-                .Replace("%", "%25")
-                .Replace(" ", "%20")
-                .Replace("[", "%5B")
-                .Replace("]", "%5D")
-                .Replace("(", "%28")
-                .Replace(")", "%29")
-                .Replace("#", "%23");
+            => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachment.ParentPage)), GetAttachmentFilePath(attachment)).Replace("\\", "/");
 
         public override NotebookExportResult ExportNotebookInTargetFormat(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
