@@ -1,4 +1,4 @@
-﻿using alxnbl.OneNoteMdExporter.Helpers;
+using alxnbl.OneNoteMdExporter.Helpers;
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
 using Microsoft.Office.Interop.OneNote;
@@ -520,6 +520,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="pageMdFileContent">Markdown content of the page</param>
         private void ExportPageAttachments(Page page, ref string pageMdFileContent)
         {
+            // OneNote concatenates consecutive attachment tags without any separator (\<\<A\>\>\<\<B\>\>),
+            // which is hard to read once converted to links. Put each one on its own line.
+            pageMdFileContent = pageMdFileContent.Replace("\\>\\>\\<\\<", "\\>\\>\n\\<\\<");
+
             foreach (Attachement attach in page.Attachements)
             {
                 if (attach.Type == AttachementType.File)
@@ -540,6 +544,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 FinalizeExportPageAttachments(page, attach);
             }
+
+            // Any \<\<name\>\> placeholder still present could not be extracted (file not available in the OneNote
+            // cache, e.g. file printouts). Convert the raw OneNote tag into readable bold text instead of leaving it.
+            pageMdFileContent = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*?)(\\\\>){2}", m =>
+            {
+                var name = Regex.Replace(m.Groups["fileName"].Value, @"\\(.)", "$1");
+                return $"**{name}**";
+            });
         }
 
 
@@ -558,16 +570,36 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <param name="attach"></param>
         private static void InsertPageMdAttachmentReference(ref string pageMdFileContent, Attachement attach, Func<Attachement, string> getAttachMdReferenceMethod)
         {
-            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*)(\\\\>){2}", delegate (Match match)
+            // Replace only the first still-open matching placeholder so that several attachments sharing the same
+            // name on one page are each linked to their own file rather than all to the first one.
+            var alreadyReplaced = false;
+
+            // Note the lazy quantifier (.*?): a greedy .* would span across multiple consecutive \<\<...\>\> tags
+            // on the same page, so the comparison below would never match and no link would be inserted.
+            var pageMdFileContentModified = Regex.Replace(pageMdFileContent, "(\\\\<){2}(?<fileName>.*?)(\\\\>){2}", delegate (Match match)
             {
+                if (alreadyReplaced)
+                    return match.Value;
+
                 var refFileName = match.Groups["fileName"]?.Value ?? "";
+                // PanDoc escapes special characters (_, [, ], etc.) in markdown; remove the backslash escapes before comparing
+                var refFileNameUnescaped = Regex.Replace(refFileName, @"\\(.)", "$1");
+                // Normalize invisible/space variants on both sides so the comparison matches the (already normalized) preferred name
+                refFileNameUnescaped = RemoveInvisibleChars(refFileNameUnescaped);
                 var attachOriginalFileName = attach.OneNotePreferredFileName;
                 var attachMdRef = getAttachMdReferenceMethod(attach);
 
-                if (refFileName.Equals(attachOriginalFileName))
+                if (refFileNameUnescaped.Equals(attachOriginalFileName))
                 {
                     // reference found is corresponding to the attachment being processed
-                    return $"[{attachOriginalFileName}]({attachMdRef})";
+                    alreadyReplaced = true;
+                    // Link target: wrap in angle brackets <...> so any valid Windows file name (commas, '+', spaces,
+                    // umlauts, ...) resolves literally without percent-encoding, which Obsidian mis-decodes. Angle
+                    // brackets only forbid '<' '>' newline - all illegal in Windows file names anyway.
+                    // Label: replace '[' / ']' with round brackets - square brackets break the markdown link in
+                    // Obsidian whether escaped ("\[") or literal ("["); only a bracket-free label resolves.
+                    var label = attachOriginalFileName.Replace("[", "(").Replace("]", ")");
+                    return $"[{label}](<{attachMdRef}>)";
                 }
                 else
                 {
@@ -621,9 +653,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 var refLabel = Path.GetFileNameWithoutExtension(imgAttach.ActualSourceFilePath);
 
                 if (outputHtmlTag)
-                    return $"<img src=\"{attachRef}\" alt=\"{refLabel}\" />";
+                    return $"<img src=\"{attachRef}\" alt=\"{refLabel}\" />"; // raw path (image names are GUIDs)
                 else
-                    return $"![{refLabel}]({attachRef})";
+                    return $"![{refLabel}](<{attachRef}>)"; // angle-bracket the markdown image target
             }
 
             // Match <IMG> tags and any html cell tags arround
@@ -667,31 +699,27 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="page">The parent Page</param>
         /// <param name="attach">The attachment</param>
+        // Notebook-wide set of attachment paths already assigned, for O(1) duplicate detection.
+        private readonly HashSet<string> _usedAttachmentPaths = new(StringComparer.OrdinalIgnoreCase);
+
         private void EnsureAttachmentFileIsNotUsed(Page page, Attachement attach)
         {
-            var notUseFileNameFound = false;
+            // Original names (instead of GUIDs) can collide across the notebook. Find the next free name by checking
+            // a notebook-wide set in O(1) instead of rescanning every attachment of the notebook (previously O(A^2)).
+            var basePath = GetAttachmentFilePath(attach);
+            var candidateFilePath = basePath;
             var cmpt = 0;
-            var attachmentFilePath = GetAttachmentFilePath(attach);
 
-            while (!notUseFileNameFound)
+            while (_usedAttachmentPaths.Contains(candidateFilePath))
             {
-                var candidateFilePath = cmpt == 0 ? attachmentFilePath :
-                    $"{Path.ChangeExtension(attachmentFilePath, null)}-{cmpt}{Path.GetExtension(attachmentFilePath)}";
-
-                var attachmentFileNameAlreadyUsed = page.GetNotebook().GetAllAttachments().Any(a => a != attach && PathExtensions.PathEquals(GetAttachmentFilePath(a), candidateFilePath));
-
-                // because of using guid, this step should no longer needed and need to be removed
-                if (!attachmentFileNameAlreadyUsed)
-                {
-                    if (cmpt > 0)
-                        attach.OverrideExportFilePath = candidateFilePath;
-
-                    notUseFileNameFound = true;
-                }
-                else
-                    cmpt++;
+                cmpt++;
+                candidateFilePath = $"{Path.ChangeExtension(basePath, null)}-{cmpt}{Path.GetExtension(basePath)}";
             }
 
+            if (cmpt > 0)
+                attach.OverrideExportFilePath = candidateFilePath;
+
+            _usedAttachmentPaths.Add(candidateFilePath);
         }
 
 
@@ -725,6 +753,19 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
         }
 
+        /// <summary>
+        /// Normalize file names: convert non-breaking / narrow spaces to a normal space, and remove truly invisible
+        /// formatting characters (soft hyphen, zero-width spaces, word joiner, BOM). OneNote keeps these in a file name
+        /// but PanDoc strips/normalizes them in the &lt;&lt;name&gt;&gt; tag, which would otherwise make the attachment
+        /// file name and the markdown link differ by an (invisible) character and break the link.
+        /// </summary>
+        private static string RemoveInvisibleChars(string s)
+        {
+            if (s == null) return null;
+            s = Regex.Replace(s, "[\u00A0\u2007\u202F]", " ");
+            return Regex.Replace(s, "[\u00AD\u200B\u200C\u200D\u2060\uFEFF]", "");
+        }
+
         private static void ProcessPageAttachments(XNamespace ns, Page page, XElement xmlPageContent)
         {
             foreach (var xmlAttachment in xmlPageContent.Descendants(ns + "InsertedFile").Concat(xmlPageContent.Descendants(ns + "MediaFile")))
@@ -733,7 +774,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 {
                     ActualSourceFilePath = xmlAttachment.Attribute("pathCache")?.Value,
                     OriginalUserFilePath = xmlAttachment.Attribute("pathSource")?.Value,
-                    OneNotePreferredFileName = xmlAttachment.Attribute("preferredName")?.Value,
+                    OneNotePreferredFileName = RemoveInvisibleChars(xmlAttachment.Attribute("preferredName")?.Value),
                     Type = AttachementType.File
                 };
 
