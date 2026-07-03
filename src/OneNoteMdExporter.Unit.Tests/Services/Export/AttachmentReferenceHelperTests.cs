@@ -50,6 +50,16 @@ namespace OneNoteMdExporter.Unit.Tests.Services.Export
         }
 
         [Test]
+        public void Insert_NameWithCommaPlusAndSquareBracket_LabelRoundBracketsTargetKeepsAllCharsLiteral()
+        {
+            // The core-fix combination: comma + plus + square bracket in the same name, exercising label
+            // and target transformation at the same time.
+            var attach = FileAttachment("R+V, Vertrag[2024].pdf");
+            var result = Insert(Placeholder(@"R+V, Vertrag\[2024\].pdf"), attach, "resources/R+V, Vertrag[2024].pdf");
+            Assert.That(result, Is.EqualTo("[R+V, Vertrag(2024).pdf](<resources/R+V, Vertrag[2024].pdf>)"));
+        }
+
+        [Test]
         public void Insert_NameWithSquareBrackets_LabelUsesRoundBracketsTargetKeepsSquare()
         {
             var attach = FileAttachment("Anhang[1].pdf");
@@ -76,6 +86,17 @@ namespace OneNoteMdExporter.Unit.Tests.Services.Export
         }
 
         [Test]
+        public void Insert_TwoDifferentPlaceholders_ReplacesOnlyMatchingOneAndLeavesOtherUntouched()
+        {
+            // Two DIFFERENT attachments on one page: only the placeholder matching the current attachment
+            // is replaced; the other one is left for a later call.
+            var attach = FileAttachment("Rechnung.pdf");
+            var pageMd = Placeholder("Rechnung.pdf") + Placeholder("Vertrag.pdf");
+            var result = Insert(pageMd, attach, "resources/Rechnung.pdf");
+            Assert.That(result, Is.EqualTo("[Rechnung.pdf](<resources/Rechnung.pdf>)" + Placeholder("Vertrag.pdf")));
+        }
+
+        [Test]
         public void Insert_NonMatchingPlaceholder_LeftUntouched()
         {
             var attach = FileAttachment("Rechnung.pdf");
@@ -91,6 +112,23 @@ namespace OneNoteMdExporter.Unit.Tests.Services.Export
             var attach = FileAttachment(name);
             var result = Insert(Placeholder(name), attach, "resources/" + name);
             Assert.That(result, Is.EqualTo("[" + name + "](<resources/" + name + ">)"));
+        }
+
+        [Test]
+        public void Insert_EmptyFileName_ProducesEmptyLabelWithAngleBracketTarget()
+        {
+            var attach = FileAttachment("");
+            var result = Insert(Placeholder(""), attach, "resources/leer");
+            Assert.That(result, Is.EqualTo("[](<resources/leer>)"));
+        }
+
+        [Test]
+        public void Insert_PageContentWithoutPlaceholder_LeftUntouched()
+        {
+            var attach = FileAttachment("Rechnung.pdf");
+            var pageMd = "Text ohne jeden Anhang-Platzhalter.";
+            var result = Insert(pageMd, attach, "resources/Rechnung.pdf");
+            Assert.That(result, Is.EqualTo(pageMd));
         }
 
         // ---- RemoveInvisibleChars ----
@@ -147,6 +185,19 @@ namespace OneNoteMdExporter.Unit.Tests.Services.Export
         public void RemoveInvisibleChars_Null_ReturnsNull()
         {
             Assert.That(AttachmentReferenceHelper.RemoveInvisibleChars(null), Is.Null);
+        }
+
+        [Test]
+        public void RemoveInvisibleChars_EmptyString_ReturnsEmptyString()
+        {
+            Assert.That(AttachmentReferenceHelper.RemoveInvisibleChars(""), Is.Empty);
+        }
+
+        [Test]
+        public void RemoveInvisibleChars_NoBreakSpaceAndSoftHyphenCombined_BothNormalized()
+        {
+            var input = "a" + (char)0x00A0 + "b" + (char)0x00AD + "c";
+            Assert.That(AttachmentReferenceHelper.RemoveInvisibleChars(input), Is.EqualTo("a bc"));
         }
     }
 }
