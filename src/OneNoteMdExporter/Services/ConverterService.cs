@@ -45,7 +45,7 @@ namespace alxnbl.OneNoteMdExporter.Services
                 FileName = pandocPath,
                 Arguments = arguments,
                 UseShellExecute = false,
-                CreateNoWindow = false,
+                CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -125,20 +125,20 @@ namespace alxnbl.OneNoteMdExporter.Services
             mdFileContent = InsertMdTodoMarks(mdFileContent);
         }
 
-        private static string InsertMdTodoMarks(string mdFileContent)
+        internal static string InsertMdTodoMarks(string mdFileContent)
         {
             return mdFileContent.Replace("«☐»", "- [ ] ").Replace("«☑»", "- [x] ");
            
         }
 
-        private static string RemoveOneNoteHeader(string pageTxt)
+        internal static string RemoveOneNoteHeader(string pageTxt)
         {
             var pageTxtModified = Regex.Replace(pageTxt, @"^.+(\n|\r|\r\n){1,2}.+(\n|\r|\r\n){1,2}\d{2}:\d{2}\s+", "");
 
             return pageTxtModified;
         }
 
-        private static string RemoveUTF8NonBreakingSpace(string pageTxt)
+        internal static string RemoveUTF8NonBreakingSpace(string pageTxt)
         {
             // Max 2 consecutive linebreaks
             var pageTxtModified = Regex.Replace(pageTxt, @"(\xa0|\xc2|\xc2\xa0)", string.Empty);
@@ -146,7 +146,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private static string RemoveHtmlCommentBlocks(string pageTxt)
+        internal static string RemoveHtmlCommentBlocks(string pageTxt)
         {
             // Pandoc produce <!-- --> tags
             var pageTxtModified = Regex.Replace(pageTxt, @"(\n|\r|\r\n)( )*\<!--( )*--\>( )*", "");
@@ -156,7 +156,7 @@ namespace alxnbl.OneNoteMdExporter.Services
 
         
 
-        private static string DeduplicateLinebreaks(string pageTxt)
+        internal static string DeduplicateLinebreaks(string pageTxt)
         {
             // PanDoc seems to produce 2 linebreaks characters for each linebreak in original DocX file
             // Replace all pair of linebreak by a single linebreak
@@ -165,7 +165,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private static string MaxTwoLineBreaksInARow(string pageTxt)
+        internal static string MaxTwoLineBreaksInARow(string pageTxt)
         {
             // Max 2 consecutive linebreaks
             var pageTxtModified = Regex.Replace(pageTxt, @"((\n[ \t]*\n+)|(\r[ \t]*\r+)|(\r\n[ \t]*(\r\n)+))",
@@ -174,7 +174,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private static string RemoveQuotationBlocks(string pageTxt)
+        internal static string RemoveQuotationBlocks(string pageTxt)
         {
             string regex = @"(\n|\r|\r\n)>(\n|\r|\r\n)";
             var pageTxtModified = Regex.Replace(pageTxt, regex, delegate (Match match)
@@ -197,7 +197,7 @@ namespace alxnbl.OneNoteMdExporter.Services
         /// </summary>
         /// <param name="pageTxt"></param>
         /// <returns></returns>
-        private static string InsertMdHighlight(string pageTxt)
+        internal static string InsertMdHighlight(string pageTxt)
         {
             // match and replace each span block of a row
             string regex = @"\<span class=\""mark\""\>(?<text>((?!\</span\>).)*)\</span\>"; // https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word
@@ -209,7 +209,7 @@ namespace alxnbl.OneNoteMdExporter.Services
             return pageTxtModified;
         }
 
-        private static string UnEscapeStylingSpan(string pageTxt)
+        internal static string UnEscapeStylingSpan(string pageTxt)
         {
             // Unescape the highlighting span tags (after Pandoc conversion)
             string highlightRegex = @"«span\s+style='(\s*[a-zA-Z0-9\s\.\#;:-]*)'»(.*?)«\/span»";
