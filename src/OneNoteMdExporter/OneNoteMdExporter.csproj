@@ -37,16 +37,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <COMReference Include="Microsoft.Office.OneNote.dll">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>1</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>0ea692ee-bb50-4e3c-aef0-356d91732725</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
+    <Reference Include="Microsoft.Office.Interop.OneNote">
+      <HintPath>libs\Microsoft.Office.Interop.OneNote.dll</HintPath>
       <Private>true</Private>
-    </COMReference>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -80,6 +74,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile.Extension" Version="2.0.2" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
