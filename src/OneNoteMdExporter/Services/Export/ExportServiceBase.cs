@@ -631,7 +631,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
             }
 
             // Match <IMG> tags and any html cell tags arround
-            string pattern = @"(?<cellTagStart><(?:td|th)\b[^>]*>(?:(?!<\/(?:td|th)>)[\s\S])*?)?(?<imgTag><img\b[^>]*>)(?<cellTagEnd>(?:(?!<\/(?:td|th)>)[\s\S])*?<\/(?:td|th)>)?";
+            // NB: cellTagStart/cellTagEnd must not span other <img> tags, otherwise a single match
+            // can swallow several images (when they are close to an HTML <table>), leaving the
+            // other images unreferenced and their markdown paths pointing to the cleaned temp folder.
+            string pattern = @"(?<cellTagStart><(?:td|th)\b[^>]*>(?:(?!<\/(?:td|th)>|<img\b)[\s\S])*?)?(?<imgTag><img\b[^>]*>)(?<cellTagEnd>(?:(?!<\/(?:td|th)>|<img\b)[\s\S])*?<\/(?:td|th)>)?";
 
             var pageTxtModified = Regex.Replace(mdFileContent, pattern, delegate (Match match)
             {
