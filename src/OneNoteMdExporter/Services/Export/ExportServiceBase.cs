@@ -1,6 +1,7 @@
 ﻿using alxnbl.OneNoteMdExporter.Helpers;
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
+using alxnbl.OneNoteMdExporter.Services;
 using Microsoft.Office.Interop.OneNote;
 using Serilog;
 using System;
@@ -150,6 +151,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // Convert docx file into Md using PanDoc
                 var pageMd = ConverterService.ConvertDocxToMd(page, docxFileTmpFile, GetTmpFolder(page));
 
+                // Fallback: when the Word/PanDoc route produced nothing for this page, render its markdown
+                // straight from the OneNote page XML instead of writing an empty page.
+                if (string.IsNullOrWhiteSpace(pageMd) && AppSettings.XmlFallbackRenderer && ExportFormatCode == "md")
+                {
+                    Log.Information($"Page '{page.TitleWithPageLevelTabulation}': the Word/PanDoc route produced no content, rendering from the OneNote page XML");
+                    pageMd = RenderPageFromXml(page, xmlPageContentStr);
+                }
+
                 if (AppSettings.Debug)
                 {
                     // And write Pandoc markdown file
@@ -235,6 +244,54 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Fallback body for a page the Word/PanDoc route produced no content for: render Markdown straight
+        /// from the OneNote page XML. The XML is re-parsed from the original string so page XML preprocessing
+        /// (which mutates the working tree) cannot interfere. Images embedded in the XML (one:Data) are written
+        /// to the page's resource folder by the renderer; file attachments are linked to the copies
+        /// ExportPageAttachments makes later in this same export (the paths are deterministic), so no OneNote
+        /// binary read is needed.
+        /// </summary>
+        private string RenderPageFromXml(Page page, string xmlPageContentStr)
+        {
+            var xml = XDocument.Parse(xmlPageContentStr).Root;
+            var ns = xml.Name.Namespace;
+            var mdDir = Path.GetDirectoryName(GetPageMdFilePath(page));
+
+            // Map each one:InsertedFile / one:MediaFile to the attachment ProcessPageAttachments registered for
+            // it. That method walks InsertedFile then MediaFile and keeps only the ones with a pathCache, so
+            // build the map the same way, over the same original XML, to keep the positions aligned.
+            var fileElements = xml.Descendants(ns + "InsertedFile")
+                .Concat(xml.Descendants(ns + "MediaFile"))
+                .Where(e => e.Attribute("pathCache")?.Value != null)
+                .ToList();
+            var fileAttachments = page.FileAttachements;
+            var byElement = new Dictionary<XElement, Attachement>();
+            for (var i = 0; i < fileElements.Count && i < fileAttachments.Count; i++)
+                byElement[fileElements[i]] = fileAttachments[i];
+
+            var warnings = new List<string>();
+            var options = new XmlRenderOptions
+            {
+                ResourceFolder = GetResourceFolderPath(page),
+                MdDir = mdDir,
+                ImageKeyPrefix = page.Id,
+                IncludeTitle = false, // the title is already carried by the front matter and the file name
+                AttachmentRef = element =>
+                {
+                    if (!byElement.TryGetValue(element, out var attachment)) return null;
+                    // ExportPageAttachments copies the file to this exact path later in the same export;
+                    // the path is deterministic, so link to it now.
+                    return Path.GetRelativePath(mdDir, GetAttachmentFilePath(attachment)).Replace('\\', '/');
+                },
+            };
+
+            var md = XmlMarkdownRenderer.Render(xml, ns, options, warnings);
+            foreach (var warning in warnings.Distinct())
+                Log.Warning($"Page '{page.TitleWithPageLevelTabulation}': {warning}");
+            return md;
         }
 
         protected abstract string GetPageWikilink(string linkText, string mdFilePath, string pageId);

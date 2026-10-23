@@ -122,6 +122,14 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// </summary>
         public static bool DisablePageXmlPreProcessing { get; set; } = false;
 
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): when the OneNote -> Word -> PanDoc route produces no content
+        /// for a page, render that page's Markdown straight from its OneNote XML instead of leaving it empty.
+        /// Only acts on pages the normal route failed to render, so it never changes a page that already has
+        /// content. Set to false to keep the previous behaviour (empty page).
+        /// </summary>
+        public static bool XmlFallbackRenderer { get; set; } = true;
+
         /*
          * Developer Settings
          * */

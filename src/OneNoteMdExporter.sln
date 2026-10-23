@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneNoteMdExporter", "OneNot
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneNoteMdExporter.IntTests", "OneNoteMdExporter.IntTests\OneNoteMdExporter.IntTests.csproj", "{D52F67BD-40DF-4E93-82B2-A138CC531E7E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XmlMarkdownRenderer.Tests", "XmlMarkdownRenderer.Tests\XmlMarkdownRenderer.Tests.csproj", "{B8C27A3F-A686-4754-9558-0E8FF7239A4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{D52F67BD-40DF-4E93-82B2-A138CC531E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D52F67BD-40DF-4E93-82B2-A138CC531E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D52F67BD-40DF-4E93-82B2-A138CC531E7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8C27A3F-A686-4754-9558-0E8FF7239A4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8C27A3F-A686-4754-9558-0E8FF7239A4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8C27A3F-A686-4754-9558-0E8FF7239A4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8C27A3F-A686-4754-9558-0E8FF7239A4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
