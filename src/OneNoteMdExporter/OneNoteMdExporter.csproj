@@ -36,17 +36,23 @@
     <None Remove="Resources\trad.es.json" />
   </ItemGroup>
 
+  <!-- OneNote COM interop.
+       Upstream used <COMReference Include="Microsoft.Office.OneNote.dll"> (type library GUID
+       0ea692ee-bb50-4e3c-aef0-356d91732725, version 1.1), which MSBuild turns into an interop assembly with
+       tlbimp at build time. That needs .NET Framework MSBuild (ResolveComReference) and desktop OneNote
+       installed on the build machine, so `dotnet build` could not build the project and the build had to find
+       Visual Studio's MSBuild via vswhere.
+       lib\Interop.Microsoft.Office.Interop.OneNote.dll is exactly that tlbimp output, generated once from the
+       OneNote type library (TypeLibVersion 1.1) and committed, so the project builds with the plain .NET SDK
+       anywhere, with no OneNote and no Visual Studio installed. OneNote is of course still needed to RUN an
+       export. To regenerate the DLL: put the COMReference back, build once with build.ps1 (Visual Studio
+       MSBuild) and copy obj\<cfg>\...\Interop.Microsoft.Office.Interop.OneNote.dll here. -->
   <ItemGroup>
-    <COMReference Include="Microsoft.Office.OneNote.dll">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>1</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>0ea692ee-bb50-4e3c-aef0-356d91732725</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <Private>true</Private>
-    </COMReference>
+    <Reference Include="Interop.Microsoft.Office.Interop.OneNote">
+      <HintPath>lib\Interop.Microsoft.Office.Interop.OneNote.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

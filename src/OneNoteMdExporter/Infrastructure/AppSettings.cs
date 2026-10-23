@@ -122,6 +122,37 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// </summary>
         public static bool DisablePageXmlPreProcessing { get; set; } = false;
 
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): when the OneNote -> Word -> PanDoc route produces no content
+        /// for a page, render that page's Markdown straight from its OneNote XML instead of leaving it empty.
+        /// Only acts on pages the normal route failed to render, so it never changes a page that already has
+        /// content. Set to false to keep the previous behaviour (empty page).
+        /// </summary>
+        public static bool XmlFallbackRenderer { get; set; } = true;
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): a fixed export root folder (set by --output). When empty, each
+        /// export goes to a new timestamped folder under "Exports" (the default). When set, the notebook is
+        /// always exported to the same folder, which is what makes --resume able to continue it.
+        /// </summary>
+        public static string ExportRootFolder { get; set; } = "";
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export, needs ExportRootFolder / --output): continue an interrupted
+        /// export in that folder -- skip the pages already recorded in the notebook's export journal and
+        /// export the rest -- instead of cleaning the folder and starting over.
+        /// </summary>
+        public static bool ResumeExport { get; set; } = false;
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): maximum full path length of an exported page file. A page whose
+        /// path would be longer is shortened (its file name is cut and a short hash keeps it unique), and if the
+        /// folder alone is already too long the page is written to a "_long-paths" folder at the root of the
+        /// notebook folder. Room is reserved for the resources folder and attachment file names. 0 disables the
+        /// guard (the default). The classic Windows path limit is 260.
+        /// </summary>
+        public static int MaxPathLength { get; set; } = 0;
+
         /*
          * Developer Settings
          * */
