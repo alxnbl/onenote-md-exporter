@@ -122,6 +122,95 @@ namespace alxnbl.OneNoteMdExporter.Infrastructure
         /// </summary>
         public static bool DisablePageXmlPreProcessing { get; set; } = false;
 
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): when the OneNote -> Word -> PanDoc route produces no content
+        /// for a page, render that page's Markdown straight from its OneNote XML instead of leaving it empty.
+        /// Only acts on pages the normal route failed to render, so it never changes a page that already has
+        /// content. Set to false to keep the previous behaviour (empty page).
+        /// </summary>
+        public static bool XmlFallbackRenderer { get; set; } = true;
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): a fixed export root folder (set by --output). When empty, each
+        /// export goes to a new timestamped folder under "Exports" (the default). When set, the notebook is
+        /// always exported to the same folder, which is what makes --resume able to continue it.
+        /// </summary>
+        public static string ExportRootFolder { get; set; } = "";
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export, needs ExportRootFolder / --output): continue an interrupted
+        /// export in that folder -- skip the pages already recorded in the notebook's export journal and
+        /// export the rest -- instead of cleaning the folder and starting over.
+        /// </summary>
+        public static bool ResumeExport { get; set; } = false;
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export, needs Word/Excel/PowerPoint installed): make a PDF copy of each
+        /// Office file attachment (.docx, .xlsx, .pptx, …) next to it and link it under the attachment, so the
+        /// content stays readable without Office. The original file is always kept. Default false.
+        /// </summary>
+        public static bool ConvertOfficeToPdf { get; set; } = false;
+
+        /// <summary>
+        /// ADVANCED SETTING: restrict ConvertOfficeToPdf to these extensions (e.g. [".docx", ".pptx"]). Empty = all
+        /// supported Office formats.
+        /// </summary>
+        public static string[] OfficeToPdfExtensions { get; set; } = System.Array.Empty<string>();
+
+        /// <summary>
+        /// ADVANCED SETTING: timeout in seconds for a single Office-to-PDF conversion. A conversion that does not
+        /// finish in time is abandoned and its Office instance killed, so one bad file cannot hang the export.
+        /// Also the base timeout for ffmpeg media conversions (multiplied for the longer media runs).
+        /// </summary>
+        public static int ConversionTimeoutSeconds { get; set; } = 180;
+
+        /// <summary>
+        /// ADVANCED SETTING: path to ffmpeg (used for media copies and transcription). "ffmpeg" finds it on PATH
+        /// (or the registry PATH / winget links). All media features are skipped when ffmpeg is not found.
+        /// </summary>
+        public static string FfmpegPath { get; set; } = "ffmpeg";
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export, needs ffmpeg): audio attachment extensions to also copy as MP3 next
+        /// to the original (e.g. [".wma"]). Empty = no audio conversion (the default).
+        /// </summary>
+        public static string[] AudioToMp3Extensions { get; set; } = System.Array.Empty<string>();
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export, needs ffmpeg): video attachment extensions to also copy as MP4 next
+        /// to the original (e.g. [".wmv"]). Empty = no video conversion (the default).
+        /// </summary>
+        public static string[] VideoToMp4Extensions { get; set; } = System.Array.Empty<string>();
+
+        /// <summary>
+        /// ADVANCED SETTING (needs ffmpeg): command line to transcribe a media attachment. {input} is a 16 kHz
+        /// mono WAV ffmpeg prepares, {output} is the transcript path stem; the tool must write &lt;stem&gt;.txt. Empty
+        /// = no transcription (the default). Example: whisper-cli -m model.bin -f {input} -otxt -of {output}
+        /// </summary>
+        public static string TranscriptionCommand { get; set; } = "";
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): convert EMF/WMF metafile attachments and images to PNG, which
+        /// Markdown viewers can display, and reference the PNG instead. Also render XPS printout attachments to
+        /// one PNG per page, embedded under the attachment. The originals are always kept. Set to false to leave
+        /// metafiles and XPS untouched (they will not render in most viewers).
+        /// </summary>
+        public static bool ConvertLegacyFormats { get; set; } = true;
+
+        /// <summary>
+        /// ADVANCED SETTING: resolution in DPI used to render XPS printout attachments to PNG (ConvertLegacyFormats).
+        /// </summary>
+        public static int XpsRenderDpi { get; set; } = 150;
+
+        /// <summary>
+        /// ADVANCED SETTING (Markdown export): maximum full path length of an exported page file. A page whose
+        /// path would be longer is shortened (its file name is cut and a short hash keeps it unique), and if the
+        /// folder alone is already too long the page is written to a "_long-paths" folder at the root of the
+        /// notebook folder. Room is reserved for the resources folder and attachment file names. 0 disables the
+        /// guard (the default). The classic Windows path limit is 260.
+        /// </summary>
+        public static int MaxPathLength { get; set; } = 0;
+
         /*
          * Developer Settings
          * */
