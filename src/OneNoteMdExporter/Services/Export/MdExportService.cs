@@ -110,6 +110,10 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 if (!success) result.PagesOnError++;
             }
 
+            // Record this notebook's page id => file map, used by LinkRepair after the whole run
+            if (AppSettings.RepairLinks)
+                LinkRepair.WriteLinkMap(notebook, allPages, GetPageMdFilePath, GetNotebookFolderPath(notebook));
+
             return result;
         }
 
