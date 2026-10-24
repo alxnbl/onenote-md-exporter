@@ -349,3 +349,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /src/alxnbl.OneNoteMdExporter/Properties/launchSettings.json
+
+# Build output of build-dotnet.ps1 / build.ps1
+dist/
