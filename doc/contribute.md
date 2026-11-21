@@ -1,4 +1,12 @@
-Please join to your pull request a sample NoteBook file that will be used to test your evolution.
+Please include a minimal synthetic or anonymized reproduction with your pull
+request so the change can be tested. Never attach real notebooks, personal
+information, or private logs.
+
+# GitHub Copilot guidance
+
+See the [versioned Copilot guidance proposal](copilot.md) for repository
+instructions, focused agents, reusable skills, manual prompt templates, and
+current validation and client-support limits.
 
 # Add a new Export setting
 
