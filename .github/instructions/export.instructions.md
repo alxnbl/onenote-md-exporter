@@ -4,6 +4,9 @@ applyTo: "src/OneNoteMdExporter/**/*.cs"
 
 # Export implementation
 
+- Keep control flow and abstractions understandable to a human reviewer. Prefer
+  the smallest reliable change over feature breadth; justify dependencies and
+  check their licensing under the shared contribution policy.
 - Trace the affected stage before editing: `Services/ConverterService.cs`,
   `Services/Export/ExportServiceBase.cs`, the format-specific
   `MdExportService.cs` / `JoplinExportService.cs`, and the relevant models/helpers.
@@ -27,6 +30,8 @@ applyTo: "src/OneNoteMdExporter/**/*.cs"
 - Errors must remain visible in existing logging and export results. Do not
   report complete success after losing an image, attachment, or page. Keep
   expected partial-export behavior explicit rather than adding broad catches.
+  Use clear localized warnings with a safe next action for nontechnical users;
+  explain remaining limitations and backup needs, not a promise of lossless export.
 - New or modified process waits/retries need explicit finite bounds, observable
   failure, and appropriate output/error handling. Release owned COM references
   on failure as well as success; do not terminate unrelated Office sessions.

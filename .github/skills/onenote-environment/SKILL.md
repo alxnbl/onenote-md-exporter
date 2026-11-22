@@ -8,6 +8,9 @@ description: Diagnose Windows, .NET, COM, Office, or Pandoc blockers for OneNote
 Use when an export or proposed validation is blocked by the environment.
 This is diagnosis, not an installer, build refactor, or automatic live export.
 During code review, inspect supplied environment evidence only; run no commands.
+Follow the [contribution policy](../../../doc/contribute.md): favor the simplest
+safe diagnosis. A technical-roadmap direction is not authorization to install,
+modernize the build, add dependencies, or activate CI.
 
 ## Procedure
 
@@ -45,3 +48,6 @@ During code review, inspect supplied environment evidence only; run no commands.
 Return the failing stage, verified prerequisites, commands actually run and
 results, remaining unknowns, and the smallest safe next step. Do not label an
 export validated after only checking the SDK or finding an executable.
+Explain risks, backup, and partial-export limitations in plain language, using
+localized user-facing warnings when applicable. Leave proposed installation or
+code changes for explicit approval and independent human review/validation.

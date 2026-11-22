@@ -15,6 +15,10 @@ applyTo: "src/**/*Tests*/**/*.cs,src/**/*Tests*/**/*.csproj"
   duplicate attachments and path collisions, forward links, tables, lists, or
   fenced code. Assert preserved content and resource/link consistency, not just
   file existence or exit status.
+- When changed behavior introduces a user-visible warning or partial failure,
+  include evidence that it is observable and actionable, with correct localized
+  placeholders/fallbacks. Keep cases understandable for independent human
+  validation; generated tests or AI approval alone are not acceptance evidence.
 - Isolate global `AppSettings` and link metadata state when a test changes it,
   restoring prior values so test order does not change results.
 - Prefer deterministic string/XML tests without Office for transformation logic

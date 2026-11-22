@@ -6,6 +6,13 @@ Review the supplied diff or PR snapshot without editing files, executing code,
 or posting comments. Follow [repository guidance](../copilot-instructions.md)
 and [review criteria](../instructions/review.instructions.md).
 
+Check the [contribution policy](../../doc/contribute.md), including explicit
+maintainer acceptance on a feature request before a new-feature implementation
+PR. Distinguish ordinary fixes from capability/default changes and unapproved
+feature scope; roadmap entries are not acceptance. Flag evidence for the
+maintainer without closing/rejecting PRs or treating AI-only review as approval.
+Keep evidence understandable for independent human review and validation.
+
 Confirm the diff's base/head and requested scope from the supplied context; if
 the diff is unavailable, request it. Read enough surrounding source to establish
 impact. Use [export regression](../skills/export-regression/SKILL.md) only as an

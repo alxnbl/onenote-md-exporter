@@ -6,6 +6,26 @@ dependencies, builds, CI, repository settings, or review automation.
 Native GitHub Copilot code review remains the default PR-review surface; a
 separate review agent would duplicate it.
 
+## Alignment with project principles
+
+The canonical [contribution policy](contribute.md) now makes these previously
+implicit or missing expectations explicit: simple human-readable architecture,
+reliability/security before secondary features, free/open-source GPL version 3
+with compatible reuse and attribution, accessible localized warnings/defaults,
+backup and loss-risk disclosure, and independent human validation of AI work.
+
+New features require a feature request and explicit maintainer acceptance before
+their implementation PR. Ordinary bug/regression and export-quality fixes need
+no new feature request or second feature approval; capability/default changes
+must be identified for maintainer decision. Shared instructions, triage,
+development, and review consumers apply that distinction. A roadmap item is a
+discussion direction, never acceptance or an autonomous task.
+
+This aligns guidance and contribution documentation, **not the application's
+technical compliance**. Existing export-loss cases, build/test limitations,
+accessibility gaps, and dependency/security questions still need scoped evidence,
+discussion, and human validation; updating instructions does not fix them.
+
 ## Inventory
 
 | Layer | Files | Purpose |
@@ -27,21 +47,45 @@ custom model selection, MCP configuration, or shell preapproval.
    of related PRs and their dependencies. The role has only `read` and `search`:
    it cannot execute `gh`, fetch live issue metadata, edit, or delegate. Missing
    contribution context is reported, not treated as proof that no overlap exists.
+   For a new feature, identify the feature request/maintainer acceptance or
+   recommend discussion first; do not create an issue or assume roadmap approval.
 2. **Implement:** explicitly request one behavior change with `export-fix`.
    Provide expected output and approved scope. Ask to use `export-regression`;
    use `onenote-environment` only for a real environment blocker. This role has
    `read`, `search`, `edit`, and `execute`, but those capabilities are not
    authorization for privileged commands, Office access, or GitHub mutations.
+   If a claimed fix changes capabilities/defaults, flag the product decision for
+   the maintainer rather than bypassing the contribution policy.
 3. **Review:** when you choose to open a PR, request native Copilot code review
    manually. Look for evidenced defects in changed code and missing focused
    regression/docs, not style noise or unrelated existing issues. The manual
    review template is an alternative for a supplied local diff, not an
    automatic reviewer and not a request to post comments.
+   Check feature acceptance and human-reviewable evidence; AI review alone does
+   not accept the work.
 
 For example, supply: "Use export-regression to fix this synthetic attachment
 collision. Input: two distinct attachments named report.txt. Expected: both
 contents retained and every Markdown/Joplin reference points to its own resource.
 Do not change CI or dependencies." Choose edge cases relevant to the real task.
+
+## Roadmap for discussion
+
+These are maintainer-proposed directions, not scheduled work or approved
+implementation scope. Prioritize technical foundations and fixing poor-quality
+or information-losing exports before secondary features. Discuss user benefit,
+security/reliability, accessibility, and design/maintenance cost before acceptance.
+No timeline, coverage target, automation, or backlog decision is established here.
+
+| Area | Proposed direction and boundary |
+| --- | --- |
+| Technical foundations | Remove the Visual Studio dependency; [#151](https://github.com/alxnbl/onenote-md-exporter/pull/151) proposes this and was open/unmerged when checked on 2026-11-22. Recheck its status/dependencies and coordinate rather than duplicate or import unmerged work. |
+| Delivery and regression | Automate CI/CD and regression testing, after agreeing scope and a supported test/build boundary. Current COM/Office limitations still apply. |
+| Contribution backlog | Review open PRs against these priorities and acceptance evidence; discuss declining secondary/gadget proposals case by case, without prejudging individual PRs. |
+| Export quality | Improve edge cases reported in existing issues where rendering is poor or information is lost. Preserve Markdown and Joplin behavior and expose residual risks. |
+| Everyday use | Discuss a multilingual graphical interface for everyday users while retaining the CLI for automation. This is not authorization to build the GUI. |
+| Guidance for users | Discuss a multilingual website/tutorial covering export through import into Joplin or Obsidian. |
+| Languages | Discuss support for languages across all European countries, not just EU members. Agree coverage with maintainers and native-language reviewers; no translations are implemented here. |
 
 ## Supported surfaces and limits
 
@@ -113,6 +157,9 @@ Instructions and skills are advisory and cannot enforce merge requirements.
 Selecting a role or template does not authorize a commit/push, PR, review
 request, issue assignment, merge, policy change, or automation. Request those
 actions explicitly. Branch protections and access policies remain separate.
+Explicit permission to submit a PR does not replace new-feature acceptance.
+AI-assisted changes, including instructions themselves, need independent human
+review/validation; this workflow does not use AI-only approval or automatic merging.
 
 ## Maintenance
 

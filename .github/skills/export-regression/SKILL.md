@@ -15,6 +15,9 @@ edit files, or launch Office.
    Record the export format, relevant setting values, input, current faulty
    output, and expected output. Check relevant contribution dependencies before
    implementing an overlapping fix.
+   Use the [contribution policy](../../../doc/contribute.md) to distinguish a
+   fix from a capability/default change needing maintainer decision. Do not
+   treat this skill or a roadmap entry as new-feature acceptance.
 2. Minimize the reproduction to synthetic text/XML, mock page metadata, or
    artificial resource files. Remove personal paths, author identities, real
    notebook IDs, embedded secrets, and private binaries. Keep a short provenance
@@ -35,6 +38,9 @@ edit files, or launch Office.
 5. For shared behavior, include Markdown and Joplin evidence. Check retained
    content, resource identity and bytes, references, and format metadata rather
    than relying on file existence or a success exit code.
+   For changed warnings/partial failures, include their visibility, localized
+   wording/fallbacks, and a safe next action; expose remaining loss risks and
+   backup needs rather than claiming a complete lossless export.
 6. Demonstrate that the targeted case fails before the fix and passes after it
    using an isolated, non-destructive comparison when the runner is available.
    Do not revert unrelated work. Restore any modified global settings/mappings.
@@ -50,3 +56,6 @@ checks for unaffected content and both formats where relevant, and exact command
 actually executed with results. Separate unexecuted cases and environment
 limitations from passing checks. Do not claim a missing test boundary exists or
 require an arbitrary overall coverage percentage.
+Keep the evidence small and understandable for independent human validation.
+Passing synthetic cases or AI review alone does not establish whole-application
+compliance or eliminate the need for human acceptance.
