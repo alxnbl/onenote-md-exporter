@@ -7,14 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <COMReference Include="Microsoft.Office.OneNote.dll">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>1</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>0ea692ee-bb50-4e3c-aef0-356d91732725</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-    </COMReference>
+    <Reference Include="Microsoft.Office.Interop.OneNote">
+      <HintPath>..\OneNoteMdExporter\libs\Microsoft.Office.Interop.OneNote.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
