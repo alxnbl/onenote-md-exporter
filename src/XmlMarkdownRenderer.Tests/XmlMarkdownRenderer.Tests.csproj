@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Pure unit tests for Services/XmlMarkdownRenderer.cs.
+
+    The integration test project (OneNoteMdExporter.IntTests) references the OneNote COM type
+    library and needs a running OneNote, so it cannot run on its own. The renderer has no
+    dependency on the rest of the exporter, so its source file is compiled straight into this
+    project: "dotnet test src/XmlMarkdownRenderer.Tests" runs without OneNote and without Visual Studio.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>alxnbl.OneNoteMdExporter.Tests</RootNamespace>
+    <AssemblyName>XmlMarkdownRenderer.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\OneNoteMdExporter\Services\XmlMarkdownRenderer.cs" Link="XmlMarkdownRenderer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+  </ItemGroup>
+
+</Project>

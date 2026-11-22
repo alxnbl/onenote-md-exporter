@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Pure unit tests for Services/MarkdownCleanup.cs. The class has no dependency on the rest of the
+    exporter, so its source file is compiled straight into this project and the tests run with no OneNote
+    and no Visual Studio ("dotnet test src/MarkdownCleanup.Tests").
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>alxnbl.OneNoteMdExporter.Tests</RootNamespace>
+    <AssemblyName>MarkdownCleanup.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\OneNoteMdExporter\Services\MarkdownCleanup.cs" Link="MarkdownCleanup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+  </ItemGroup>
+
+</Project>
