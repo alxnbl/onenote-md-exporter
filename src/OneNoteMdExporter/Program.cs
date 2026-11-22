@@ -43,6 +43,12 @@ namespace alxnbl.OneNoteMdExporter
 
             [Option("ignore-errors", Required = false, HelpText = "Export all notebook event in case of error")]
             public bool IgnoreErrors { get; set; }
+
+            [Option('o', "output", Required = false, HelpText = "Fixed export folder (Markdown export). Each notebook is always exported to <output>\\<notebook>, instead of a new timestamped folder. Required for --resume.")]
+            public string OutputFolder { get; set; }
+
+            [Option("resume", Required = false, HelpText = "Continue an interrupted export in the --output folder: skip pages already exported, export the rest. Needs --output.")]
+            public bool Resume { get; set; }
         }
 
         public static void Main(params string[] args)
@@ -68,12 +74,22 @@ namespace alxnbl.OneNoteMdExporter
             AppSettings.LoadAppSettings();
             AppSettings.Debug = opts.Debug;
 
+            if (!string.IsNullOrWhiteSpace(opts.OutputFolder))
+                AppSettings.ExportRootFolder = opts.OutputFolder;
+            if (opts.Resume)
+            {
+                AppSettings.ResumeExport = true;
+                if (string.IsNullOrWhiteSpace(AppSettings.ExportRootFolder))
+                    Log.Warning("--resume has no effect without --output: there is no fixed folder to resume, so a full export is run");
+            }
+
             Log.Debug("Debug mode: {DebugMode}", AppSettings.Debug);
             InitLogger();
 
             try
             {
                 AppDomain.CurrentDomain.ProcessExit += new EventHandler((_, _) => OneNoteApp.CleanUp());
+                AppDomain.CurrentDomain.ProcessExit += new EventHandler((_, _) => Services.OfficeToPdfConverter.CloseOffice());
                 OneNoteApp.RenewInstance();
                 Log.Debug("OneNote instance renewed successfully");
             }
@@ -179,6 +195,10 @@ namespace alxnbl.OneNoteMdExporter
                     Log.Information("");
                 }
             }
+
+            // Resolve cross-page link placeholders once every notebook of this run is on disk
+            if (AppSettings.RepairLinks)
+                Services.Export.LinkRepair.RepairAll(notebookToProcess);
 
             if (!AppSettings.Debug && !AppSettings.KeepOneNoteTempFiles)
             {
