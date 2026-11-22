@@ -1,6 +1,7 @@
 ﻿using alxnbl.OneNoteMdExporter.Helpers;
 using alxnbl.OneNoteMdExporter.Infrastructure;
 using alxnbl.OneNoteMdExporter.Models;
+using alxnbl.OneNoteMdExporter.Services;
 using Microsoft.Office.Interop.OneNote;
 using Serilog;
 using System;
@@ -47,11 +48,65 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected abstract string GetPageMdFilePath(Page page);
 
+        /// <summary>
+        /// Journal of completed pages for the notebook being exported, used by --resume. Null unless a fixed
+        /// output folder (ExportRootFolder) is in use for a Markdown export.
+        /// </summary>
+        protected ExportJournal Journal { get; private set; }
+
+        /// <summary>
+        /// Marks a fixed output folder as belonging to one notebook, so two notebooks cannot share and clean it.
+        /// </summary>
+        public const string NotebookMarkerFileName = ".notebook-name";
 
         public NotebookExportResult ExportNotebook(Notebook notebook, string sectionNameFilter = "", string pageNameFilter = "")
         {
-            notebook.ExportFolder = @$"{Localizer.GetString("ExportFolder")}\{ExportFormatCode}\{notebook.GetNotebookPath()}-{DateTime.Now:yyyyMMdd HH-mm}";
-            CleanUpFolder(notebook);
+            // A fixed output folder and --resume apply to the Markdown export only. A Joplin export keeps the
+            // upstream behaviour: a new timestamped folder each run (its note ids are regenerated every run).
+            var useFixedFolder = !string.IsNullOrWhiteSpace(AppSettings.ExportRootFolder) && ExportFormatCode == "md";
+            var resume = useFixedFolder && AppSettings.ResumeExport;
+
+            if (useFixedFolder)
+                notebook.ExportFolder = Path.GetFullPath(AppSettings.ExportRootFolder);
+            else
+                notebook.ExportFolder = @$"{Localizer.GetString("ExportFolder")}\{ExportFormatCode}\{notebook.GetNotebookPath()}-{DateTime.Now:yyyyMMdd HH-mm}";
+
+            var notebookFolder = GetNotebookFolderPath(notebook);
+
+            // A notebook folder belongs to one notebook. Two notebooks whose names are equal once cut to
+            // MdMaxFileLength, exported to the same fixed root, would otherwise share it and clean each other.
+            var markerPath = Path.Combine(notebookFolder, NotebookMarkerFileName);
+            if (useFixedFolder && File.Exists(markerPath))
+            {
+                var owner = File.ReadAllText(markerPath).Trim();
+                if (owner.Length > 0 && !string.Equals(owner, notebook.Title, StringComparison.Ordinal))
+                    return new NotebookExportResult
+                    {
+                        NoteBookExportErrorCode = "FolderOfOtherNotebook",
+                        NoteBookExportErrorMessage = $"'{notebookFolder}' holds the export of notebook '{owner}', not '{notebook.Title}'. Rename one of the notebooks in OneNote or export to another --output folder."
+                    };
+            }
+
+            var canResume = resume && File.Exists(Path.Combine(notebookFolder, ExportJournal.FileName));
+            if (canResume)
+            {
+                // Keep what was already exported, only clean the temp folder
+                DirectoryHelper.ClearFolder(GetTmpFolder(notebook));
+            }
+            else
+            {
+                if (resume)
+                    Log.Information($"No previous export found in '{notebookFolder}', starting a full export");
+                CleanUpFolder(notebook);
+            }
+
+            if (useFixedFolder)
+            {
+                Directory.CreateDirectory(notebookFolder);
+                File.WriteAllText(markerPath, notebook.Title ?? "", new System.Text.UTF8Encoding(false));
+            }
+
+            Journal = useFixedFolder ? new ExportJournal(notebookFolder, canResume) : null;
 
             // Initialize hierarchy of the notebook from OneNote APIs
             try
@@ -95,6 +150,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// <returns>True if the export finished with success</returns>
         protected bool ExportPage(Page page, bool retry = false)
         {
+            // Resume: if this page was fully exported in a previous run and its file is still there, skip it.
+            // Checked before the page content is fetched from OneNote, so a resumed page costs nothing.
+            if (!retry && Journal != null && Journal.IsCompleted(page, GetPageMdFilePath(page)))
+            {
+                Log.Information($"Page '{page.GetPageFileRelativePath(AppSettings.MdMaxFileLength)}': already exported, skipped (resume)");
+                return true;
+            }
+
             try
             {
                 OneNoteApp.Instance.GetPageContent(page.OneNoteId, out var xmlPageContentStr, PageInfo.piBinaryDataFileType);
@@ -109,6 +172,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 // Suffix page title
                 EnsurePageUniquenessPerSection(page);
+
+                // Keep the page's full path under MaxPathLength (no-op unless the setting is > 0)
+                ApplyPathLengthGuard(page);
 
                 if (!AppSettings.DisablePageXmlPreProcessing)
                 {
@@ -150,6 +216,14 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // Convert docx file into Md using PanDoc
                 var pageMd = ConverterService.ConvertDocxToMd(page, docxFileTmpFile, GetTmpFolder(page));
 
+                // Fallback: when the Word/PanDoc route produced nothing for this page, render its markdown
+                // straight from the OneNote page XML instead of writing an empty page.
+                if (string.IsNullOrWhiteSpace(pageMd) && AppSettings.XmlFallbackRenderer && ExportFormatCode == "md")
+                {
+                    Log.Information($"Page '{page.TitleWithPageLevelTabulation}': the Word/PanDoc route produced no content, rendering from the OneNote page XML");
+                    pageMd = RenderPageFromXml(page, xmlPageContentStr);
+                }
+
                 if (AppSettings.Debug)
                 {
                     // And write Pandoc markdown file
@@ -181,6 +255,18 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 // Export all file attachments and get updated page markdown including md reference to attachments
                 ExportPageAttachments(page, ref pageMd);
 
+                // Convert EMF/WMF metafiles written for this page to PNG and point the markdown at the PNG
+                ConvertLegacyImages(page, ref pageMd);
+
+                // Make a PDF copy of Office file attachments and link it under the attachment
+                ConvertOfficeAttachments(page, ref pageMd);
+
+                // Render XPS printout attachments to PNG pages embedded under the attachment
+                ConvertXpsAttachments(page, ref pageMd);
+
+                // Copy audio/video attachments to MP3/MP4 and, if configured, append a machine transcript
+                ConvertMediaAttachments(page, ref pageMd);
+
                 // Apply post processing to Page Md content
                 ConverterService.PageMdPostConversion(ref pageMd);
 
@@ -191,6 +277,9 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 pageMd = FinalizePageMdPostProcessing(page, pageMd);
 
                 WritePageMdFile(page, pageMd);
+
+                // Resume: record the page as complete only now, after its md file and attachments are on disk
+                Journal?.MarkCompleted(page, GetPageMdFilePath(page));
 
                 return true;
             }
@@ -235,6 +324,201 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Fallback body for a page the Word/PanDoc route produced no content for: render Markdown straight
+        /// from the OneNote page XML. The XML is re-parsed from the original string so page XML preprocessing
+        /// (which mutates the working tree) cannot interfere. Images embedded in the XML (one:Data) are written
+        /// to the page's resource folder by the renderer; file attachments are linked to the copies
+        /// ExportPageAttachments makes later in this same export (the paths are deterministic), so no OneNote
+        /// binary read is needed.
+        /// </summary>
+        private string RenderPageFromXml(Page page, string xmlPageContentStr)
+        {
+            var xml = XDocument.Parse(xmlPageContentStr).Root;
+            var ns = xml.Name.Namespace;
+            var mdDir = Path.GetDirectoryName(GetPageMdFilePath(page));
+
+            // Map each one:InsertedFile / one:MediaFile to the attachment ProcessPageAttachments registered for
+            // it. That method walks InsertedFile then MediaFile and keeps only the ones with a pathCache, so
+            // build the map the same way, over the same original XML, to keep the positions aligned.
+            var fileElements = xml.Descendants(ns + "InsertedFile")
+                .Concat(xml.Descendants(ns + "MediaFile"))
+                .Where(e => e.Attribute("pathCache")?.Value != null)
+                .ToList();
+            var fileAttachments = page.FileAttachements;
+            var byElement = new Dictionary<XElement, Attachement>();
+            for (var i = 0; i < fileElements.Count && i < fileAttachments.Count; i++)
+                byElement[fileElements[i]] = fileAttachments[i];
+
+            var warnings = new List<string>();
+            var options = new XmlRenderOptions
+            {
+                ResourceFolder = GetResourceFolderPath(page),
+                MdDir = mdDir,
+                ImageKeyPrefix = page.Id,
+                IncludeTitle = false, // the title is already carried by the front matter and the file name
+                AttachmentRef = element =>
+                {
+                    if (!byElement.TryGetValue(element, out var attachment)) return null;
+                    // ExportPageAttachments copies the file to this exact path later in the same export;
+                    // the path is deterministic, so link to it now.
+                    return Path.GetRelativePath(mdDir, GetAttachmentFilePath(attachment)).Replace('\\', '/');
+                },
+                DisplayableCopy = imagePath =>
+                    AppSettings.ConvertLegacyFormats && LegacyFormatConverter.IsMetafile(imagePath)
+                        ? LegacyFormatConverter.ConvertMetafileToPng(imagePath)
+                        : null, // an EMF/WMF image embedded in the page XML: show a PNG copy, keep the original
+            };
+
+            var md = XmlMarkdownRenderer.Render(xml, ns, options, warnings);
+            foreach (var warning in warnings.Distinct())
+                Log.Warning($"Page '{page.TitleWithPageLevelTabulation}': {warning}");
+            return md;
+        }
+
+        /// <summary>
+        /// For every attachment of the page whose file on disk is an EMF/WMF metafile, render a PNG next to it
+        /// and point the markdown reference at the PNG. The original metafile is kept. No-op unless
+        /// ConvertLegacyFormats is on and the export is Markdown.
+        /// </summary>
+        private void ConvertLegacyImages(Page page, ref string pageMd)
+        {
+            if (!AppSettings.ConvertLegacyFormats || ExportFormatCode != "md")
+                return;
+
+            foreach (var attach in page.Attachements.ToList())
+            {
+                var filePath = GetAttachmentFilePath(attach);
+                if (!File.Exists(filePath) || !LegacyFormatConverter.IsMetafile(filePath))
+                    continue;
+
+                var png = LegacyFormatConverter.ConvertMetafileToPng(filePath);
+                if (png == null)
+                    continue;
+
+                var oldRef = GetAttachmentMdReference(attach);
+                pageMd = pageMd.Replace(oldRef, Path.ChangeExtension(oldRef, ".png"));
+            }
+        }
+
+        /// <summary>
+        /// For every Office file attachment, make a PDF copy next to it (via the installed Office) and insert a
+        /// link to the PDF right after the attachment's line in the markdown. The original file is kept. No-op
+        /// unless ConvertOfficeToPdf is on and the export is Markdown.
+        /// </summary>
+        private void ConvertOfficeAttachments(Page page, ref string pageMd)
+        {
+            if (!AppSettings.ConvertOfficeToPdf || ExportFormatCode != "md")
+                return;
+
+            var mdDir = Path.GetDirectoryName(Path.GetFullPath(GetPageMdFilePath(page)));
+            var warnings = new List<string>();
+
+            foreach (var attach in page.FileAttachements.ToList())
+            {
+                var filePath = GetAttachmentFilePath(attach);
+                if (!File.Exists(filePath) || !OfficeToPdfConverter.IsOfficeFile(filePath))
+                    continue;
+
+                var pdf = OfficeToPdfConverter.OfficeToPdf(filePath, warnings);
+                if (pdf == null)
+                    continue;
+
+                var pdfRef = Path.GetRelativePath(mdDir, Path.GetFullPath(pdf)).Replace('\\', '/');
+                var oldRef = GetAttachmentMdReference(attach);
+                pageMd = InsertAfterLineContaining(pageMd, oldRef, $"PDF copy: [{Path.GetFileName(pdf)}]({pdfRef})");
+            }
+
+            foreach (var w in warnings.Distinct())
+                Log.Warning($"Page '{page.TitleWithPageLevelTabulation}': {w}");
+        }
+
+        /// <summary>
+        /// For every XPS printout attachment, render one PNG per page next to it and embed the pages right after
+        /// the attachment's line in the markdown. The original XPS is kept. No-op unless ConvertLegacyFormats is
+        /// on and the export is Markdown.
+        /// </summary>
+        private void ConvertXpsAttachments(Page page, ref string pageMd)
+        {
+            if (!AppSettings.ConvertLegacyFormats || ExportFormatCode != "md")
+                return;
+
+            var mdDir = Path.GetDirectoryName(Path.GetFullPath(GetPageMdFilePath(page)));
+
+            foreach (var attach in page.FileAttachements.ToList())
+            {
+                var filePath = GetAttachmentFilePath(attach);
+                if (!File.Exists(filePath) || !LegacyFormatConverter.IsXps(filePath))
+                    continue;
+
+                var pngs = LegacyFormatConverter.ConvertXpsToPngs(filePath, AppSettings.XpsRenderDpi);
+                if (pngs.Count == 0)
+                    continue;
+
+                var name = Path.GetFileNameWithoutExtension(filePath);
+                var embeds = string.Join(Environment.NewLine + Environment.NewLine,
+                    pngs.Select((p, i) => $"![{name} page {i + 1}]({Path.GetRelativePath(mdDir, Path.GetFullPath(p)).Replace('\\', '/')})"));
+                pageMd = InsertAfterLineContaining(pageMd, GetAttachmentMdReference(attach), embeds);
+            }
+        }
+
+        /// <summary>
+        /// For audio/video file attachments: copy to MP3/MP4 next to the original (ffmpeg) and link it under the
+        /// attachment; and, if a transcription command is configured, append a machine transcript at the end of
+        /// the page. No-op unless the export is Markdown and at least one media option is configured.
+        /// </summary>
+        private void ConvertMediaAttachments(Page page, ref string pageMd)
+        {
+            if (ExportFormatCode != "md")
+                return;
+
+            var mdDir = Path.GetDirectoryName(Path.GetFullPath(GetPageMdFilePath(page)));
+            var warnings = new List<string>();
+            var transcripts = new List<string>();
+
+            foreach (var attach in page.FileAttachements.ToList())
+            {
+                var filePath = GetAttachmentFilePath(attach);
+                if (!File.Exists(filePath))
+                    continue;
+
+                var isAudio = MediaConverter.IsAudioToConvert(filePath);
+                var isVideo = MediaConverter.IsVideoToConvert(filePath);
+                if (!isAudio && !isVideo)
+                    continue;
+
+                var copy = isVideo ? MediaConverter.ToMp4(filePath, warnings) : MediaConverter.ToMp3(filePath, warnings);
+                if (copy != null)
+                {
+                    var copyRef = Path.GetRelativePath(mdDir, Path.GetFullPath(copy)).Replace('\\', '/');
+                    pageMd = InsertAfterLineContaining(pageMd, GetAttachmentMdReference(attach), $"{(isVideo ? "MP4" : "MP3")} copy: [{Path.GetFileName(copy)}]({copyRef})");
+                }
+
+                var transcript = MediaConverter.Transcribe(filePath, warnings);
+                if (!string.IsNullOrWhiteSpace(transcript))
+                    transcripts.Add($"## Transcript of {attach.FriendlyFileName}" + Environment.NewLine + Environment.NewLine
+                        + "*Machine transcription (may contain errors).*" + Environment.NewLine + Environment.NewLine + transcript);
+            }
+
+            if (transcripts.Count > 0)
+                pageMd = pageMd.TrimEnd() + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine + Environment.NewLine, transcripts) + Environment.NewLine;
+
+            foreach (var w in warnings.Distinct())
+                Log.Warning($"Page '{page.TitleWithPageLevelTabulation}': {w}");
+        }
+
+        /// <summary>Insert a line of markdown right after the line that contains <paramref name="marker"/>, or at the end if not found.</summary>
+        private static string InsertAfterLineContaining(string md, string marker, string toInsert)
+        {
+            var idx = md.IndexOf(marker, StringComparison.Ordinal);
+            if (idx < 0)
+                return md + Environment.NewLine + Environment.NewLine + toInsert + Environment.NewLine;
+
+            var lineEnd = md.IndexOf('\n', idx);
+            if (lineEnd < 0) lineEnd = md.Length;
+            return md[..lineEnd] + Environment.NewLine + Environment.NewLine + toInsert + Environment.NewLine + md[lineEnd..];
         }
 
         protected abstract string GetPageWikilink(string linkText, string mdFilePath, string pageId);
@@ -700,6 +984,54 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="page">The parent Page</param>
         /// <param name="attach">The attachment</param>
+        /// <summary>
+        /// Keep a page's full path under AppSettings.MaxPathLength. First shortens the file name (with a short
+        /// hash to stay unique); if the folder itself is already too long, the page is written to a "_long-paths"
+        /// folder at the root of the notebook folder. Room is reserved next to the md file for the resources
+        /// folder and attachment file names. No-op unless MaxPathLength > 0 and the export is Markdown.
+        /// </summary>
+        private void ApplyPathLengthGuard(Page page)
+        {
+            if (AppSettings.MaxPathLength <= 0 || ExportFormatCode != "md")
+                return;
+
+            // Room needed next to the md file: "\<resources>\" + 32-char id + extension (generously "-p99.png")
+            var attachmentMargin = AppSettings.ResourceFolderName.Length + 2 + 32 + 10;
+
+            var mdPath = Path.GetFullPath(GetPageMdFilePath(page));
+            var limit = AppSettings.MaxPathLength;
+
+            if (mdPath.Length + attachmentMargin <= limit)
+                return;
+
+            var dir = Path.GetDirectoryName(mdPath);
+            var stem = Path.GetFileNameWithoutExtension(mdPath);
+            var hash = ShortHash(page.OneNoteId ?? page.Id);
+            var available = limit - attachmentMargin - dir.Length - 1 - ".md".Length - hash.Length - 1;
+
+            string newPath;
+            if (available >= 12)
+            {
+                newPath = Path.Combine(dir, stem[..Math.Min(stem.Length, available)].TrimEnd() + "~" + hash + ".md");
+            }
+            else
+            {
+                var overflowDir = Path.Combine(Path.GetFullPath(GetNotebookFolderPath(page.GetNotebook())), "_long-paths");
+                var availableOverflow = limit - attachmentMargin - overflowDir.Length - 1 - ".md".Length - hash.Length - 1;
+                newPath = Path.Combine(overflowDir, stem[..Math.Clamp(availableOverflow, 0, stem.Length)].TrimEnd() + "~" + hash + ".md");
+            }
+
+            Log.Warning($"Page '{page.Title}': path too long ({mdPath.Length} chars + {attachmentMargin} reserved for attachments > MaxPathLength {limit}), exported as '{newPath}'");
+            page.OverridePageFilePath = newPath;
+        }
+
+        /// <summary>First 8 hex characters of the SHA-1 of the value, lower-case; used to keep a shortened file name unique.</summary>
+        private static string ShortHash(string value)
+        {
+            var hash = System.Security.Cryptography.SHA1.HashData(System.Text.Encoding.UTF8.GetBytes(value ?? ""));
+            return Convert.ToHexString(hash)[..8].ToLowerInvariant();
+        }
+
         private void EnsurePageUniquenessPerSection(Page page)
         {
             var notUseFileNameFound = false;
