@@ -81,7 +81,7 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
         /// </summary>
         /// <param name="pageTxt">Markdown content</param>
         /// <returns>Updated markdown content with converted links</returns>
-        public string ConvertOneNoteLinks(string pageTxt, Func<string, string, string, string> getWikilink)
+        public string ConvertOneNoteLinks(string pageTxt, Func<string, string, string, string> getWikilink, bool usePlaceholders = false)
         {
             if (AppSettings.OneNoteLinksHandling == OneNoteLinksHandlingEnum.KeepOriginal)
             {
@@ -99,6 +99,16 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 if (AppSettings.OneNoteLinksHandling == OneNoteLinksHandlingEnum.Remove)
                 {
                     return linkText;
+                }
+
+                // With RepairLinks on, write a placeholder that LinkRepair resolves to a real relative path once
+                // every page is on disk (so a link to a page exported later is not lost). Markdown export only.
+                if (usePlaceholders)
+                {
+                    var ph = Regex.Match(onenoteUrl, @"page-id=\{([^}]+)\}", RegexOptions.IgnoreCase);
+                    if (ph.Success)
+                        return $"[{linkText}](onenote-page:{ph.Groups[1].Value.ToLowerInvariant()} \"OneNote page link\")";
+                    // not a page link (section, Outlook item, …): keep the current behaviour below
                 }
 
                 // Try to replace OneNote Page link

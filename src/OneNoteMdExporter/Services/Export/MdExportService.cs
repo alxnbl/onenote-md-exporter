@@ -107,10 +107,128 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
                 Log.Information($"- {Localizer.GetString("Page")} {++cmptPage}/{allPages.Count} : {page.Parent.Title} / {page.TitleWithPageLevelTabulation}");
                 var success = ExportPage(page);
 
-                if (!success) result.PagesOnError++;
+                if (success) result.PagesExported++;
+                else result.PagesOnError++;
+            }
+
+            // Record this notebook's page id => file map, used by LinkRepair after the whole run
+            if (AppSettings.RepairLinks)
+                LinkRepair.WriteLinkMap(notebook, allPages, GetPageMdFilePath, GetNotebookFolderPath(notebook));
+
+            // Write _index.md per section (its pages) and per notebook (its sections)
+            if (AppSettings.WriteIndexNotes)
+            {
+                try { WriteIndexNotes(notebook, sections, allPages); }
+                catch (Exception ex) { Log.Warning($"Writing index notes for '{notebook.Title}' failed: {ex.Message}"); }
+            }
+
+            // Describe the archive in VAULT.md at the export root and log this run
+            if (AppSettings.WriteVaultReadme)
+            {
+                try { VaultReadme.Write(notebook.ExportFolder, notebook, result); }
+                catch (Exception ex) { Log.Warning($"Writing {VaultReadme.FileName} for '{notebook.Title}' failed: {ex.Message}"); }
             }
 
             return result;
+        }
+
+        private static string YamlQuote(string value) => "'" + (value ?? "").Replace("'", "''") + "'";
+
+        private static string YamlUnquote(string value)
+        {
+            var v = (value ?? "").Trim();
+            if (v.Length >= 2 && v[0] == '\'' && v[^1] == '\'')
+                return v[1..^1].Replace("''", "'");
+            return v;
+        }
+
+        /// <summary>
+        /// Write "_index.md" in each section folder (its pages in OneNote order, indented by page level) and one
+        /// at the notebook root listing the sections. A run that exports only some sections (or resumes) keeps the
+        /// sections already on disk in the notebook index, read back from their front matter.
+        /// </summary>
+        private void WriteIndexNotes(Notebook notebook, IList<Section> sections, List<Page> allPages)
+        {
+            var notebookFolder = Path.GetFullPath(GetNotebookFolderPath(notebook));
+            var pagesBySection = allPages.GroupBy(p => p.Parent).ToDictionary(g => g.Key, g => g.OrderBy(p => p.PageSectionOrder).ToList());
+            var sectionEntries = new List<(string path, string label, int pages)>();
+
+            foreach (var section in sections)
+            {
+                if (!pagesBySection.TryGetValue(section, out var pages) || pages.Count == 0)
+                    continue;
+
+                var sectionFolder = Path.GetFullPath(Path.Combine(notebook.ExportFolder, section.GetPath(AppSettings.MdMaxFileLength)));
+                Directory.CreateDirectory(sectionFolder);
+                var indexPath = Path.Combine(sectionFolder, "_index.md");
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("---");
+                sb.AppendLine($"title: {YamlQuote(section.Title)}");
+                sb.AppendLine("type: index");
+                sb.AppendLine($"notebook: {YamlQuote(notebook.Title)}");
+                sb.AppendLine($"sectionPath: {YamlQuote(section.GetPath(255).Replace('\\', '/'))}");
+                sb.AppendLine($"pages: {pages.Count}");
+                sb.AppendLine("---");
+                sb.AppendLine();
+                sb.AppendLine($"# {section.Title}");
+                sb.AppendLine();
+
+                foreach (var page in pages)
+                {
+                    var mdPath = Path.GetFullPath(GetPageMdFilePath(page));
+                    var exists = File.Exists(mdPath);
+                    var rel = LinkRepairCore.ToMdLinkPath(Path.GetRelativePath(sectionFolder, mdPath));
+                    var indent = new string(' ', Math.Max(0, page.PageLevel - 1) * 2);
+                    var date = page.CreationDate.ToString("yyyy-MM-dd");
+                    var title = string.IsNullOrWhiteSpace(page.Title) ? "(untitled)" : page.Title.Replace("[", "\\[").Replace("]", "\\]");
+
+                    sb.AppendLine(exists ? $"{indent}- [{title}]({rel}) · {date}" : $"{indent}- {title} · {date} (not exported)");
+                }
+
+                File.WriteAllText(indexPath, sb.ToString());
+                sectionEntries.Add((indexPath, section.GetPath(255).Replace('\\', '/'), pages.Count));
+            }
+
+            // A run that exports one section (or resumes) must not shrink the notebook index to that section:
+            // every section _index.md already on disk counts, read back from its front matter.
+            foreach (var indexPath in Directory.EnumerateFiles(notebookFolder, "_index.md", SearchOption.AllDirectories))
+            {
+                if (string.Equals(Path.GetDirectoryName(Path.GetFullPath(indexPath)), notebookFolder, StringComparison.OrdinalIgnoreCase))
+                    continue; // the notebook index itself
+                if (sectionEntries.Any(e => string.Equals(e.path, Path.GetFullPath(indexPath), StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                try
+                {
+                    string label = null; int count = 0;
+                    foreach (var line in File.ReadLines(indexPath).Take(12))
+                    {
+                        if (line.StartsWith("sectionPath: ")) label = YamlUnquote(line["sectionPath: ".Length..]);
+                        else if (line.StartsWith("pages: ")) int.TryParse(line["pages: ".Length..].Trim(), out count);
+                    }
+                    if (label != null)
+                        sectionEntries.Add((Path.GetFullPath(indexPath), label, count));
+                }
+                catch (Exception ex) { Log.Debug($"Could not read {indexPath}: {ex.Message}"); }
+            }
+
+            var nb = new System.Text.StringBuilder();
+            nb.AppendLine("---");
+            nb.AppendLine($"title: {YamlQuote(notebook.Title)}");
+            nb.AppendLine("type: index");
+            nb.AppendLine($"sections: {sectionEntries.Count}");
+            nb.AppendLine($"pages: {sectionEntries.Sum(e => e.pages)}");
+            nb.AppendLine("---");
+            nb.AppendLine();
+            nb.AppendLine($"# {notebook.Title}");
+            nb.AppendLine();
+            foreach (var (path, label, count) in sectionEntries.OrderBy(e => e.label, StringComparer.CurrentCultureIgnoreCase))
+            {
+                var rel = LinkRepairCore.ToMdLinkPath(Path.GetRelativePath(notebookFolder, path));
+                nb.AppendLine($"- [{label}]({rel}) · {count} pages");
+            }
+            Directory.CreateDirectory(notebookFolder);
+            File.WriteAllText(Path.Combine(notebookFolder, "_index.md"), nb.ToString());
         }
 
         protected override void WritePageMdFile(Page page, string pageMd)
