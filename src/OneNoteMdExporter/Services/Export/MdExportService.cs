@@ -58,17 +58,26 @@ namespace alxnbl.OneNoteMdExporter.Services.Export
 
         protected override string GetAttachmentFilePath(Attachement attachment)
         {
-            if (attachment.OverrideExportFilePath == null)
-                return Path.Combine(GetResourceFolderPath(attachment.ParentPage), attachment.Id + Path.GetExtension(attachment.FriendlyFileName));
-            else
+            if (attachment.OverrideExportFilePath != null)
                 return attachment.OverrideExportFilePath;
+
+            // For file attachments, use the original (friendly) file name so the resource folder stays human-readable
+            // (sanitized; duplicates handled by EnsureAttachmentFileIsNotUsed). Images extracted from the docx have no
+            // meaningful original name (all "image1.png"...), so keep the GUID to avoid mass name collisions.
+            var friendly = attachment.FriendlyFileName;
+            string fileName = (attachment.Type == AttachementType.File && !string.IsNullOrWhiteSpace(friendly))
+                ? string.Join("_", friendly.Split(Path.GetInvalidFileNameChars()))
+                : attachment.Id + Path.GetExtension(friendly ?? "");
+
+            return Path.Combine(GetResourceFolderPath(attachment.ParentPage), fileName);
         }
 
         /// <summary>
-        /// Get relative path from Image's folder to attachment folder
+        /// Relative path from the page's folder to the attachment file, with forward slashes.
+        /// Returned raw (not encoded): markdown links wrap it in angle brackets &lt;...&gt; (see
+        /// InsertPageMdAttachmentReference / image handling), which lets any valid Windows file name appear
+        /// literally without percent-encoding. HTML &lt;img src&gt; uses it raw too (images always have GUID names).
         /// </summary>
-        /// <param name="attachment"></param>
-        /// <returns></returns>
         protected override string GetAttachmentMdReference(Attachement attachment)
             => Path.GetRelativePath(Path.GetDirectoryName(GetPageMdFilePath(attachment.ParentPage)), GetAttachmentFilePath(attachment)).Replace("\\", "/");
 

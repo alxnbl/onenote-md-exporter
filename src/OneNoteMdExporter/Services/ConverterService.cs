@@ -45,7 +45,7 @@ namespace alxnbl.OneNoteMdExporter.Services
                 FileName = pandocPath,
                 Arguments = arguments,
                 UseShellExecute = false,
-                CreateNoWindow = false,
+                CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
